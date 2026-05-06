@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Documentation
+SPEC.md
+
 # Runtime data (git-ignored, server initializes defaults)
 data/services.json
 data/settings.json

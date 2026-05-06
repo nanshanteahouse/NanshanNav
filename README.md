@@ -112,13 +112,14 @@ npm run dev:server   # 后端开发服务器 (tsx watch, 默认 3000)
 ### 生产构建与部署
 
 ```bash
-# 构建
+# 构建（仅首次部署或更新代码时执行）
 npm run build
 
-# 生产运行
-NODE_ENV=production PORT=3000 node dist/server/index.js
-# 或
+# 生产运行（默认端口 3000）
 npm start
+
+# 自定义端口运行
+PORT=8080 npm start
 ```
 
 生产模式下，Fastify 同时托管前端静态资源（从 `dist/` 目录），单端口即可运行。
@@ -132,20 +133,30 @@ After=network.target
 
 [Service]
 Type=simple
+User=your-user
 WorkingDirectory=/opt/nanshan-nav
-ExecStart=/usr/bin/node dist/server/index.js
 Environment=NODE_ENV=production
 Environment=PORT=3000
+ExecStart=/usr/bin/npm start
 Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
 
 ```bash
+# 首次部署时构建
+npm run build
+
+# 安装并启动服务
 sudo cp nanshan-nav.service /etc/systemd/system/
-sudo systemctl enable --now web-homepage
+sudo systemctl enable --now nanshan-nav
 ```
+
+**环境变量说明：**
+- `PORT` — 后端服务端口（默认 3000）
+- `FRONTEND_PORT` — 前端开发服务器端口（默认 5173，仅开发模式生效）
 
 ### Nginx 反向代理
 
