@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-background: #FAFAFA;
+  --color-card: #FFFFFF;
+  --color-card-border: #E5E7EB;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #666666;
+  --color-accent: #3B82F6;
+  --color-search-bg: #FFFFFF;
+  --color-search-border: #D1D5DB;
+  --color-category-title: #1A1A1A;
+  --color-status-online: #22C55E;
+  --color-status-offline: #EF4444;
+}
+
+.dark {
+  --color-background: #0F0F0F;
+  --color-card: #1E1E1E;
+  --color-card-border: #333333;
+  --color-text-primary: #E5E5E5;
+  --color-text-secondary: #999999;
+  --color-accent: #3B82F6;
+  --color-search-bg: #252525;
+  --color-search-border: #404040;
+  --color-category-title: #E5E5E5;
+  --color-status-online: #22C55E;
+  --color-status-offline: #EF4444;
+}
+
+* {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
