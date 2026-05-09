@@ -4,32 +4,38 @@ import type { LucideProps } from 'lucide-react';
 
 type IconComponent = React.ComponentType<LucideProps>;
 
+function isIconComponent(value: unknown): value is IconComponent {
+  // lucide-react v0.5xx exports forwardRef objects, not plain functions
+  if (typeof value === 'function') return true;
+  if (typeof value === 'object' && value !== null && 'render' in value) return true;
+  return false;
+}
+
+function pascalToKebab(key: string): string {
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase();
+}
+
 const ICON_NAMES: string[] = (() => {
-  const icons = LucideIcons as unknown as Record<string, IconComponent>;
+  const icons = LucideIcons as unknown as Record<string, unknown>;
   const names: string[] = [];
   for (const key of Object.keys(icons)) {
     if (key.endsWith('Icon') || key.startsWith('create') || key === 'default') continue;
-    if (typeof icons[key] !== 'function') continue;
-    const kebab = key
-      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-      .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
-      .toLowerCase();
-    names.push(kebab);
+    if (!isIconComponent(icons[key])) continue;
+    names.push(pascalToKebab(key));
   }
   return names.sort();
 })();
 
 const ICON_MAP: Record<string, IconComponent> = (() => {
-  const icons = LucideIcons as unknown as Record<string, IconComponent>;
+  const icons = LucideIcons as unknown as Record<string, unknown>;
   const map: Record<string, IconComponent> = {};
   for (const key of Object.keys(icons)) {
     if (key.endsWith('Icon') || key.startsWith('create') || key === 'default') continue;
-    if (typeof icons[key] !== 'function') continue;
-    const kebab = key
-      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-      .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
-      .toLowerCase();
-    map[kebab] = icons[key];
+    if (!isIconComponent(icons[key])) continue;
+    map[pascalToKebab(key)] = icons[key] as unknown as IconComponent;
   }
   return map;
 })();

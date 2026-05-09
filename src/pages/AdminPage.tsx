@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
 import { saveConfig } from '../api';
@@ -238,6 +238,7 @@ export function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('services');
   const [saving, setSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const saveStartRef = useRef(0);
 
   const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
     { id: 'services', label: '服务管理', icon: <Package size={18} /> },
@@ -250,9 +251,15 @@ export function AdminPage() {
 
   const handleSave = async () => {
     setSaving(true);
+    saveStartRef.current = Date.now();
     try {
       await saveConfig({ categories, settings });
     } finally {
+      const elapsed = Date.now() - saveStartRef.current;
+      const minDisplay = 400;
+      if (elapsed < minDisplay) {
+        await new Promise((r) => setTimeout(r, minDisplay - elapsed));
+      }
       setSaving(false);
     }
   };
