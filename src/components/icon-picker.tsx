@@ -41,7 +41,8 @@ const ICON_MAP: Record<string, IconComponent> = (() => {
   return map;
 })();
 
-const MAX_SUGGESTIONS = 50;
+const MAX_BROWSE = 240;
+const MAX_FILTERED = 100;
 
 interface IconPickerProps {
   value: string;
@@ -71,16 +72,17 @@ export function IconPicker({ value, onChange, placeholder = '搜索图标...' }:
   }, []);
 
   const suggestions = useMemo(() => {
-    if (!query.trim()) return ICON_NAMES.slice(0, MAX_SUGGESTIONS);
+    if (!query.trim()) return ICON_NAMES.slice(0, MAX_BROWSE);
     const q = query.toLowerCase().trim();
     const startsWith: string[] = [];
     const includes: string[] = [];
+    const breakAt = MAX_FILTERED;
     for (const name of ICON_NAMES) {
       if (name.startsWith(q)) startsWith.push(name);
       else if (name.includes(q)) includes.push(name);
-      if (startsWith.length + includes.length >= MAX_SUGGESTIONS) break;
+      if (startsWith.length + includes.length >= breakAt) break;
     }
-    return [...startsWith, ...includes].slice(0, MAX_SUGGESTIONS);
+    return [...startsWith, ...includes].slice(0, breakAt);
   }, [query]);
 
   const PreviewIcon = ICON_MAP[value] ?? LucideIcons.HelpCircle;
@@ -166,7 +168,7 @@ export function IconPicker({ value, onChange, placeholder = '搜索图标...' }:
       </div>
 
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full max-h-64 overflow-y-auto rounded-lg bg-[var(--color-card)] border border-[var(--color-card-border)] shadow-lg icon-picker-list">
+        <div className="absolute z-50 mt-1 w-full max-h-80 overflow-y-auto rounded-lg bg-[var(--color-card)] border border-[var(--color-card-border)] shadow-lg icon-picker-list">
           {suggestions.map((name, idx) => {
             const Icon = ICON_MAP[name] ?? LucideIcons.HelpCircle;
             const isHighlighted = idx === highlightIndex;
