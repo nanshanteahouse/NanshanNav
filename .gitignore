@@ -15,6 +15,9 @@ dist-ssr
 # Documentation
 SPEC.md
 
+# Security reports
+security/
+
 # Runtime data (git-ignored, server initializes defaults)
 data/services.json
 data/settings.json
