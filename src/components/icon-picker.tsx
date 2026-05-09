@@ -5,7 +5,6 @@ import type { LucideProps } from 'lucide-react';
 type IconComponent = React.ComponentType<LucideProps>;
 
 function isIconComponent(value: unknown): value is IconComponent {
-  // lucide-react v0.5xx exports forwardRef objects, not plain functions
   if (typeof value === 'function') return true;
   if (typeof value === 'object' && value !== null && 'render' in value) return true;
   return false;
@@ -43,6 +42,7 @@ const ICON_MAP: Record<string, IconComponent> = (() => {
 
 const MAX_BROWSE = 240;
 const MAX_FILTERED = 100;
+const GRID_COLS = 6;
 
 interface IconPickerProps {
   value: string;
@@ -78,8 +78,11 @@ export function IconPicker({ value, onChange, placeholder = '搜索图标...' }:
     const includes: string[] = [];
     const breakAt = MAX_FILTERED;
     for (const name of ICON_NAMES) {
-      if (name.startsWith(q)) startsWith.push(name);
-      else if (name.includes(q)) includes.push(name);
+      if (name.startsWith(q)) {
+        startsWith.push(name);
+      } else if (name.includes(q)) {
+        includes.push(name);
+      }
       if (startsWith.length + includes.length >= breakAt) break;
     }
     return [...startsWith, ...includes].slice(0, breakAt);
@@ -114,13 +117,27 @@ export function IconPicker({ value, onChange, placeholder = '搜索图标...' }:
     }
 
     switch (e.key) {
-      case 'ArrowDown':
+      case 'ArrowRight':
         e.preventDefault();
         setHighlightIndex((i) => Math.min(i + 1, suggestions.length - 1));
         break;
-      case 'ArrowUp':
+      case 'ArrowLeft':
         e.preventDefault();
         setHighlightIndex((i) => Math.max(i - 1, 0));
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightIndex((i) => {
+          const next = i + GRID_COLS;
+          return next < suggestions.length ? next : i;
+        });
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightIndex((i) => {
+          const prev = i - GRID_COLS;
+          return prev >= 0 ? prev : 0;
+        });
         break;
       case 'Enter':
         e.preventDefault();
@@ -137,7 +154,7 @@ export function IconPicker({ value, onChange, placeholder = '搜索图标...' }:
 
   useEffect(() => {
     if (highlightIndex < 0 || !isOpen) return;
-    const listEl = containerRef.current?.querySelector('.icon-picker-list');
+    const listEl = containerRef.current?.querySelector('.icon-picker-grid');
     if (!listEl) return;
     const item = listEl.children[highlightIndex] as HTMLElement;
     item?.scrollIntoView({ block: 'nearest' });
@@ -159,7 +176,7 @@ export function IconPicker({ value, onChange, placeholder = '搜索图标...' }:
         </div>
         {value && (
           <div
-            className="flex items-center justify-center w-8 h-8 rounded-lg border border-[var(--color-card-border)] bg-[var(--color-card)]"
+            className="flex items-center justify-center w-8 h-8 rounded-lg border border-[var(--color-card-border)] bg-[var(--color-card)] shrink-0"
             title={value}
           >
             <PreviewIcon size={18} className="text-[var(--color-text-primary)]" />
@@ -168,27 +185,35 @@ export function IconPicker({ value, onChange, placeholder = '搜索图标...' }:
       </div>
 
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full max-h-80 overflow-y-auto rounded-lg bg-[var(--color-card)] border border-[var(--color-card-border)] shadow-lg icon-picker-list">
-          {suggestions.map((name, idx) => {
-            const Icon = ICON_MAP[name] ?? LucideIcons.HelpCircle;
-            const isHighlighted = idx === highlightIndex;
-            return (
-              <button
-                key={name}
-                type="button"
-                className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors duration-75 ${
-                  isHighlighted
-                    ? 'bg-[var(--color-accent)] text-white'
-                    : 'text-[var(--color-text-primary)] hover:bg-[var(--color-search-bg)]'
-                }`}
-                onClick={() => handleSelect(name)}
-                onMouseEnter={() => setHighlightIndex(idx)}
-              >
-                <Icon size={16} className={isHighlighted ? 'text-white' : 'text-[var(--color-text-secondary)]'} />
-                <span className="font-mono text-xs">{name}</span>
-              </button>
-            );
-          })}
+        <div className="absolute z-50 mt-1 w-full max-h-96 overflow-y-auto rounded-lg bg-[var(--color-card)] border border-[var(--color-card-border)] shadow-lg p-2">
+          <div className="grid grid-cols-6 gap-1 icon-picker-grid">
+            {suggestions.map((name, idx) => {
+              const Icon = ICON_MAP[name] ?? LucideIcons.HelpCircle;
+              const isHighlighted = idx === highlightIndex;
+              const isSelected = name === value;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => handleSelect(name)}
+                  onMouseEnter={() => setHighlightIndex(idx)}
+                  className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg text-xs transition-colors ${
+                    isSelected
+                      ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]'
+                      : isHighlighted
+                        ? 'bg-[var(--color-card-border)] text-[var(--color-text-primary)]'
+                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-search-bg)]'
+                  }`}
+                  title={name}
+                >
+                  <Icon size={20} />
+                  <span className="truncate w-full text-center leading-tight" style={{ fontSize: '0.6rem' }}>
+                    {name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
