@@ -1,6 +1,6 @@
 import { useStore } from '../store';
 import { fetchPveStatus } from '../api';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import type { PveStatus } from '../types';
 import { Cpu, MemoryStick, Clock, AlertTriangle } from 'lucide-react';
 
@@ -25,7 +25,7 @@ export function PveStatusBar() {
   const settings = useStore((s) => s.settings);
   const setPveStatus = useStore((s) => s.setPveStatus);
   const pveStatus = useStore((s) => s.pveStatus);
-  const [failCount, setFailCount] = useState(0);
+  const failCountRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const poll = useCallback(async () => {
@@ -33,23 +33,30 @@ export function PveStatusBar() {
       const data = await fetchPveStatus() as PveStatus;
       setPveStatus(data);
       if (data.status === 'online') {
-        setFailCount(0);
+        failCountRef.current = 0;
       } else {
-        setFailCount((c) => c + 1);
+        failCountRef.current += 1;
       }
     } catch {
       setPveStatus({ status: 'offline', cpu: null, memoryUsed: null, memoryTotal: null, uptime: null });
-      setFailCount((c) => c + 1);
+      failCountRef.current += 1;
     }
-  }, [setPveStatus]);
+
+    if (intervalRef.current) {
+      const targetMs = failCountRef.current >= 3 ? 300000 : settings.statusCheckInterval * 1000;
+      clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(poll, targetMs);
+    }
+  }, [setPveStatus, settings.statusCheckInterval]);
 
   useEffect(() => {
     if (!settings.enablePveOverview) return;
 
+    failCountRef.current = 0;
     poll();
 
-    const interval = failCount >= 3 ? 300000 : (settings.statusCheckInterval * 1000);
-    intervalRef.current = setInterval(poll, interval);
+    const ms = settings.statusCheckInterval * 1000;
+    intervalRef.current = setInterval(poll, ms);
 
     const handleVisibility = () => {
       if (!document.hidden) {
@@ -60,9 +67,10 @@ export function PveStatusBar() {
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [settings.enablePveOverview, settings.statusCheckInterval, failCount, poll]);
+  }, [settings.enablePveOverview, settings.statusCheckInterval, poll]);
 
   if (!settings.enablePveOverview) return null;
 
