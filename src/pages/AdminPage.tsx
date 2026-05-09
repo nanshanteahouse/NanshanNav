@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useStore } from '../store';
 import { saveConfig } from '../api';
 import { ColorPicker } from '../components/color-picker';
+import { IconPicker } from '../components/icon-picker';
 import { useTheme } from '../components/theme-provider';
 import { getLucideIcon } from '../icon-utils';
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
@@ -35,6 +36,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  Loader2,
   Save,
   GripVertical,
   ArrowUp,
@@ -203,11 +205,10 @@ function SortableCategoryItem({
           onChange={(e) => onUpdate({ name: e.target.value })}
           className="px-3 py-1 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)] w-32"
         />
-        <input
+        <IconPicker
           value={category.icon}
-          onChange={(e) => onUpdate({ icon: e.target.value })}
+          onChange={(v) => onUpdate({ icon: v })}
           placeholder="Lucide 图标名"
-          className="px-3 py-1 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)] w-32"
         />
         <div className="flex items-center gap-2">
           <input
@@ -312,9 +313,13 @@ export function AdminPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-wait"
           >
-            <Save size={16} />
+            {saving ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Save size={16} />
+            )}
             {saving ? '保存中...' : '保存'}
           </button>
         </div>
@@ -374,6 +379,7 @@ function ServicesTab({ categories, setCategories }: { categories: Category[]; se
       return { ...cat, cards: [...cat.cards, newCard] };
     });
     setCategories(newCategories);
+    setEditingCard(newCard.id);
   };
 
   const removeCard = (catId: string, cardId: string) => {
@@ -476,6 +482,7 @@ function ServiceEditor({ card, categoryColor, advancedOpen, setAdvancedOpen, onU
   onUpdate: (updates: Partial<ServiceCard>) => void;
 }) {
   const filledAdvanced = [card.description, card.iconSource !== 'favicon', card.enableStatusCheck !== null].filter(Boolean).length;
+  const LucideIcon = card.iconSource === 'lucide' && card.iconValue ? getLucideIcon(card.iconValue) : null;
 
   return (
     <div className="mt-3 pt-3 border-t border-[var(--color-card-border)]">
@@ -530,16 +537,17 @@ function ServiceEditor({ card, categoryColor, advancedOpen, setAdvancedOpen, onU
                 />
               </div>
               {card.iconSource === 'lucide' && (
-                <div>
-                  <label className="text-xs text-[var(--color-text-secondary)]">Lucide 图标名</label>
-                  <input
-                    value={card.iconValue ?? ''}
-                    onChange={(e) => onUpdate({ iconValue: e.target.value })}
-                    placeholder="如: hard-drive"
-                    className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)]"
-                  />
-                </div>
-              )}
+                 <div>
+                   <label className="text-xs text-[var(--color-text-secondary)]">Lucide 图标名</label>
+                   <div className="mt-1">
+                     <IconPicker
+                       value={card.iconValue ?? ''}
+                       onChange={(v) => onUpdate({ iconValue: v })}
+                       placeholder="如: hard-drive"
+                     />
+                   </div>
+                 </div>
+               )}
               <div>
                 <label className="text-xs text-[var(--color-text-secondary)]">状态检测</label>
                 <select
@@ -569,7 +577,7 @@ function ServiceEditor({ card, categoryColor, advancedOpen, setAdvancedOpen, onU
           <label className="text-xs text-[var(--color-text-secondary)] mb-2 block">预览</label>
           <div className="inline-flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-card-border)] min-w-[140px]">
             <div className="w-9 h-9 flex items-center justify-center rounded-lg" style={{ backgroundColor: categoryColor }}>
-              <span className="text-white font-semibold text-sm">{card.name.charAt(0).toUpperCase()}</span>
+              {LucideIcon ? <LucideIcon size={18} className="text-white" /> : <span className="text-white font-semibold text-sm">{card.name.charAt(0).toUpperCase()}</span>}
             </div>
             <span className="text-sm font-medium text-[var(--color-text-primary)]">{card.name || '服务名称'}</span>
             {card.description && <span className="text-xs text-[var(--color-text-secondary)] text-center line-clamp-1">{card.description}</span>}
@@ -600,15 +608,16 @@ function TextEditor({ card, onUpdate }: { card: TextCard; onUpdate: (updates: Pa
           className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)] font-mono resize-y"
         />
       </div>
-      <div>
-        <label className="text-xs text-[var(--color-text-secondary)]">图标（Lucide 名）</label>
-        <input
-          value={card.icon}
-          onChange={(e) => onUpdate({ icon: e.target.value })}
-          placeholder="如: megaphone"
-          className="w-full mt-1 px-3 py-1.5 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)]"
-        />
-      </div>
+       <div>
+         <label className="text-xs text-[var(--color-text-secondary)]">图标（Lucide 名）</label>
+         <div className="mt-1">
+           <IconPicker
+             value={card.icon}
+             onChange={(v) => onUpdate({ icon: v })}
+             placeholder="如: megaphone"
+           />
+         </div>
+       </div>
     </div>
   );
 }
