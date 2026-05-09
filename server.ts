@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync, copyFileSync } from 'fs';
 import { resolve, join, extname, dirname } from 'path';
 import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
@@ -16,6 +16,8 @@ const DATA_DIR = resolve(__dirname, 'data');
 const FAVICONS_DIR = join(DATA_DIR, 'favicons');
 const SERVICES_FILE = join(DATA_DIR, 'services.json');
 const SETTINGS_FILE = join(DATA_DIR, 'settings.json');
+const SERVICES_TEMPLATE = join(DATA_DIR, 'services.json.example');
+const SETTINGS_TEMPLATE = join(DATA_DIR, 'settings.json.example');
 const DIST_DIR = resolve(__dirname, 'dist');
 
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
@@ -242,10 +244,18 @@ async function start() {
   ensureDataDir();
 
   if (!existsSync(SERVICES_FILE)) {
-    writeFileSync(SERVICES_FILE, JSON.stringify({ categories: [] }, null, 2), 'utf-8');
+    if (existsSync(SERVICES_TEMPLATE)) {
+      copyFileSync(SERVICES_TEMPLATE, SERVICES_FILE);
+    } else {
+      writeFileSync(SERVICES_FILE, JSON.stringify({ categories: [] }, null, 2), 'utf-8');
+    }
   }
   if (!existsSync(SETTINGS_FILE)) {
-    writeFileSync(SETTINGS_FILE, JSON.stringify({ settings: getDefaultSettings() }, null, 2), 'utf-8');
+    if (existsSync(SETTINGS_TEMPLATE)) {
+      copyFileSync(SETTINGS_TEMPLATE, SETTINGS_FILE);
+    } else {
+      writeFileSync(SETTINGS_FILE, JSON.stringify({ settings: getDefaultSettings() }, null, 2), 'utf-8');
+    }
   }
 
   const fastify = Fastify({ logger: true });
