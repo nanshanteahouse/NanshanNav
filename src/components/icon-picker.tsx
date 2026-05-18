@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import * as LucideIcons from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 
@@ -18,31 +19,20 @@ function pascalToKebab(key: string): string {
     .toLowerCase();
 }
 
-const ICON_NAMES: string[] = (() => {
+const ALL_ICONS = (() => {
   const icons = LucideIcons as unknown as Record<string, unknown>;
-  const names: string[] = [];
-  for (const key of Object.keys(icons)) {
-    if (key.endsWith('Icon') || key.startsWith('create') || key === 'default') continue;
-    if (!isIconComponent(icons[key])) continue;
-    names.push(pascalToKebab(key));
-  }
-  return names.sort();
-})();
-
-const ICON_MAP: Record<string, IconComponent> = (() => {
-  const icons = LucideIcons as unknown as Record<string, unknown>;
+  const list: string[] = [];
   const map: Record<string, IconComponent> = {};
   for (const key of Object.keys(icons)) {
     if (key.endsWith('Icon') || key.startsWith('create') || key === 'default') continue;
     if (!isIconComponent(icons[key])) continue;
-    map[pascalToKebab(key)] = icons[key] as unknown as IconComponent;
+    const kebab = pascalToKebab(key);
+    list.push(kebab);
+    map[kebab] = icons[key] as unknown as IconComponent;
   }
-  return map;
+  list.sort();
+  return { list, map };
 })();
-
-const MAX_BROWSE = 240;
-const MAX_FILTERED = 100;
-const GRID_COLS = 6;
 
 interface IconPickerProps {
   value: string;
@@ -50,172 +40,142 @@ interface IconPickerProps {
   placeholder?: string;
 }
 
-export function IconPicker({ value, onChange, placeholder = '搜索图标...' }: IconPickerProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState(value);
-  const containerRef = useRef<HTMLDivElement>(null);
+export function IconPicker({ value, onChange, placeholder = '如: hard-drive' }: IconPickerProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const PreviewIcon = ALL_ICONS.map[value] ?? LucideIcons.HelpCircle;
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    if (!q) return ALL_ICONS.list;
+    return ALL_ICONS.list.filter((name) => name.includes(q));
+  }, [search]);
 
   useEffect(() => {
-    setQuery(value);
-  }, [value]);
+    if (open) {
+      setSearch('');
+      setTimeout(() => searchInputRef.current?.focus(), 80);
+    }
+  }, [open]);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open]);
 
-  const suggestions = useMemo(() => {
-    if (!query.trim()) return ICON_NAMES.slice(0, MAX_BROWSE);
-    const q = query.toLowerCase().trim();
-    const startsWith: string[] = [];
-    const includes: string[] = [];
-    const breakAt = MAX_FILTERED;
-    for (const name of ICON_NAMES) {
-      if (name.startsWith(q)) {
-        startsWith.push(name);
-      } else if (name.includes(q)) {
-        includes.push(name);
-      }
-      if (startsWith.length + includes.length >= breakAt) break;
-    }
-    return [...startsWith, ...includes].slice(0, breakAt);
-  }, [query]);
-
-  const PreviewIcon = ICON_MAP[value] ?? LucideIcons.HelpCircle;
-
-  const handleSelect = (name: string) => {
+  const handleSelect = useCallback((name: string) => {
     onChange(name);
-    setQuery(name);
-    setIsOpen(false);
-    setHighlightIndex(-1);
-    inputRef.current?.blur();
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setQuery(v);
-    onChange(v);
-    setIsOpen(true);
-    setHighlightIndex(0);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen) {
-      if (e.key === 'ArrowDown' || e.key === 'Enter') {
-        setIsOpen(true);
-        setHighlightIndex(0);
-        e.preventDefault();
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowRight':
-        e.preventDefault();
-        setHighlightIndex((i) => Math.min(i + 1, suggestions.length - 1));
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        setHighlightIndex((i) => Math.max(i - 1, 0));
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        setHighlightIndex((i) => {
-          const next = i + GRID_COLS;
-          return next < suggestions.length ? next : i;
-        });
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setHighlightIndex((i) => {
-          const prev = i - GRID_COLS;
-          return prev >= 0 ? prev : 0;
-        });
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (highlightIndex >= 0 && highlightIndex < suggestions.length) {
-          handleSelect(suggestions[highlightIndex]);
-        }
-        break;
-      case 'Escape':
-        setIsOpen(false);
-        setHighlightIndex(-1);
-        break;
-    }
-  };
-
-  useEffect(() => {
-    if (highlightIndex < 0 || !isOpen) return;
-    const listEl = containerRef.current?.querySelector('.icon-picker-grid');
-    if (!listEl) return;
-    const item = listEl.children[highlightIndex] as HTMLElement;
-    item?.scrollIntoView({ block: 'nearest' });
-  }, [highlightIndex, isOpen]);
+    setOpen(false);
+  }, [onChange]);
 
   return (
-    <div ref={containerRef} className="relative">
+    <>
+      {/* Input row */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={handleInputChange}
-            onFocus={() => { setIsOpen(true); setHighlightIndex(0); }}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            className="w-full px-3 py-1.5 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)]"
-          />
-        </div>
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="flex-1 px-3 py-1.5 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)]"
+        />
         {value && (
-          <div
-            className="flex items-center justify-center w-8 h-8 rounded-lg border border-[var(--color-card-border)] bg-[var(--color-card)] shrink-0"
-            title={value}
-          >
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-[var(--color-card-border)] bg-[var(--color-card)] shrink-0" title={value}>
             <PreviewIcon size={18} className="text-[var(--color-text-primary)]" />
           </div>
         )}
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-xs text-[var(--color-text-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors shrink-0"
+        >
+          <LucideIcons.Grid3X3 size={14} />
+          浏览
+        </button>
       </div>
 
-      {isOpen && suggestions.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full max-h-96 overflow-y-auto rounded-lg bg-[var(--color-card)] border border-[var(--color-card-border)] shadow-lg p-2">
-          <div className="grid grid-cols-6 gap-1 icon-picker-grid">
-            {suggestions.map((name, idx) => {
-              const Icon = ICON_MAP[name] ?? LucideIcons.HelpCircle;
-              const isHighlighted = idx === highlightIndex;
-              const isSelected = name === value;
-              return (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => handleSelect(name)}
-                  onMouseEnter={() => setHighlightIndex(idx)}
-                  className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg text-xs transition-colors ${
-                    isSelected
-                      ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]'
-                      : isHighlighted
-                        ? 'bg-[var(--color-card-border)] text-[var(--color-text-primary)]'
-                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-search-bg)]'
-                  }`}
-                  title={name}
-                >
-                  <Icon size={20} />
-                  <span className="truncate w-full text-center leading-tight" style={{ fontSize: '0.6rem' }}>
-                    {name}
-                  </span>
-                </button>
-              );
-            })}
+      {/* Portal: Icon Browser */}
+      {open && createPortal(
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+        >
+          <div className="relative w-[680px] max-w-[90vw] max-h-[80vh] bg-[var(--color-card)] border border-[var(--color-card-border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-card-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">选择 Lucide 图标</h3>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="p-1 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-card-border)] transition-colors"
+              >
+                <LucideIcons.X size={18} />
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="px-4 py-3">
+              <div className="relative">
+                <LucideIcons.Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)]" />
+                <input
+                  ref={searchInputRef}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="搜索图标..."
+                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] outline-none focus:border-[var(--color-accent)]"
+                />
+              </div>
+            </div>
+
+            {/* Grid */}
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
+              {filtered.length === 0 ? (
+                <div className="py-12 text-center text-sm text-[var(--color-text-secondary)]">
+                  没有匹配的图标
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-8 gap-1.5">
+                    {filtered.map((name) => {
+                      const Icon = ALL_ICONS.map[name] ?? LucideIcons.HelpCircle;
+                      const isSelected = name === value;
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() => handleSelect(name)}
+                          title={name}
+                          className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs transition-colors ${
+                            isSelected
+                              ? 'bg-[var(--color-accent)]/15 text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]'
+                              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-search-bg)] hover:text-[var(--color-text-primary)]'
+                          }`}
+                        >
+                          <Icon size={22} />
+                          <span className="truncate w-full text-center leading-tight" style={{ fontSize: '0.6rem' }}>
+                            {name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 text-center text-xs text-[var(--color-text-secondary)]">
+                    共 {ALL_ICONS.list.length} 个图标，匹配 {filtered.length} 个
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
