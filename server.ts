@@ -21,6 +21,7 @@ const SETTINGS_TEMPLATE = join(DATA_DIR, 'settings.json.example');
 const DIST_DIR = resolve(__dirname, 'dist');
 
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
+const HOST = process.env.HOST ?? '0.0.0.0';
 const FAVICON_EXPIRE_DAYS = 7;
 const STATUS_TIMEOUT_MS = 5000;
 const STATUS_CONCURRENCY = 5;
@@ -430,8 +431,8 @@ async function start() {
   }
 
   try {
-    await fastify.listen({ port: PORT, host: '0.0.0.0' });
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+    await fastify.listen({ port: PORT, host: HOST });
+    console.log(`Server running on http://${HOST}:${PORT}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
