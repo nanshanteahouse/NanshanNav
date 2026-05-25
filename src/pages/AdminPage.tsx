@@ -41,6 +41,7 @@ import {
   GripVertical,
   ArrowUp,
   ArrowDown,
+  Copy,
 } from 'lucide-react';
 
 function SortableCardItem({
@@ -51,6 +52,7 @@ function SortableCardItem({
   isEditing,
   onEditToggle,
   onDelete,
+  onDuplicate,
   onMoveUp,
   onMoveDown,
   onUpdate,
@@ -64,6 +66,7 @@ function SortableCardItem({
   isEditing: boolean;
   onEditToggle: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onUpdate: (updates: Record<string, unknown>) => void;
@@ -106,14 +109,24 @@ function SortableCardItem({
           <button onClick={onMoveDown} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]" disabled={index === totalCards - 1}>
             <ArrowDown size={16} />
           </button>
-          <span className="text-sm font-medium text-[var(--color-text-primary)]">
+          <button
+            onClick={onEditToggle}
+            className="text-sm font-medium text-[var(--color-text-primary)] cursor-pointer hover:underline text-left"
+          >
             {card.type === 'service' ? (card as ServiceCard).name : (card as TextCard).title}
-          </span>
+          </button>
           <span className="text-xs text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded bg-[var(--color-search-bg)]">
             {card.type}
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={onDuplicate}
+            className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent)]"
+            title="复制"
+          >
+            <Copy size={16} />
+          </button>
           <button
             onClick={onEditToggle}
             className="text-xs text-[var(--color-accent)] hover:underline"
@@ -408,6 +421,33 @@ function ServicesTab({ categories, setCategories }: { categories: Category[]; se
     setCategories(newCategories);
   };
 
+  const duplicateCard = (catId: string, cardId: string) => {
+    const newCategories = categories.map((cat) => {
+      if (cat.id !== catId) return cat;
+      const idx = cat.cards.findIndex((c) => c.id === cardId);
+      if (idx === -1) return cat;
+      const original = cat.cards[idx];
+      const clone: Card = {
+        ...structuredClone(original),
+        id: original.type === 'service' ? `svc_${Date.now()}` : `txt_${Date.now()}`,
+      };
+      if (clone.type === 'service') {
+        (clone as ServiceCard).name = (original as ServiceCard).name + ' (副本)';
+      } else {
+        (clone as TextCard).title = (original as TextCard).title + ' (副本)';
+      }
+      const newCards = [...cat.cards];
+      newCards.splice(idx + 1, 0, clone);
+      return { ...cat, cards: newCards };
+    });
+    setCategories(newCategories);
+    const clonedCardId = newCategories.find((c) => c.id === catId)?.cards.find((c) => {
+      if (c.type === 'service') return (c as ServiceCard).name.endsWith('(副本)');
+      return (c as TextCard).title.endsWith('(副本)');
+    })?.id;
+    if (clonedCardId) setEditingCard(clonedCardId);
+  };
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
@@ -463,6 +503,7 @@ function ServicesTab({ categories, setCategories }: { categories: Category[]; se
                   isEditing={editingCard === card.id}
                   onEditToggle={() => setEditingCard(editingCard === card.id ? null : card.id)}
                   onDelete={() => removeCard(category.id, card.id)}
+                  onDuplicate={() => duplicateCard(category.id, card.id)}
                   onMoveUp={() => index > 0 && moveCard(category.id, index, index - 1)}
                   onMoveDown={() => index < category.cards.length - 1 && moveCard(category.id, index, index + 1)}
                   onUpdate={(updates) => updateCard(category.id, card.id, updates)}
@@ -875,6 +916,21 @@ function AppearanceTab({ settings, setSettings }: { settings: Settings; setSetti
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">卡片长宽比</h3>
+        <select
+          value={settings.cardAspectRatio}
+          onChange={(e) => setSettings({ ...settings, cardAspectRatio: e.target.value as Settings['cardAspectRatio'] })}
+          className="px-3 py-1.5 rounded-lg bg-[var(--color-search-bg)] border border-[var(--color-search-border)] text-sm text-[var(--color-text-primary)]"
+        >
+          <option value="auto">自动（高度随内容）</option>
+          <option value="1/1">正方形 (1:1)</option>
+          <option value="4/3">标准 (4:3)</option>
+          <option value="3/2">照片 (3:2)</option>
+          <option value="16/9">宽屏 (16:9)</option>
+        </select>
       </div>
 
       {(['light', 'dark'] as const).map((mode) => (

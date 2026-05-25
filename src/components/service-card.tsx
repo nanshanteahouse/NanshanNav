@@ -15,15 +15,19 @@ interface ServiceCardProps {
 export function ServiceCardComponent({ card, categoryColor }: ServiceCardProps) {
   const statusMap = useStore((s) => s.statusMap);
   const enableStatusMonitor = useStore((s) => s.settings.enableStatusMonitor);
+  const cardAspectRatio = useStore((s) => s.settings.cardAspectRatio);
   const showStatus = enableStatusMonitor && card.enableStatusCheck !== false;
   const status = showStatus ? statusMap[card.id] : undefined;
+
+  const aspectStyle = cardAspectRatio !== 'auto' ? { aspectRatio: cardAspectRatio } : {};
 
   return (
     <a
       href={card.url}
       target={card.openInNewTab ? '_blank' : '_self'}
       rel="noopener noreferrer"
-      className="group flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-card-border)] hover:shadow-md hover:border-[var(--color-accent)] transition-shadow duration-200 min-h-[100px]"
+      style={aspectStyle}
+      className="group flex flex-col items-center justify-start gap-2 p-4 pt-5 rounded-xl bg-[var(--color-card)] border border-[var(--color-card-border)] hover:shadow-md hover:border-[var(--color-accent)] transition-shadow duration-200 min-h-[100px]"
     >
       <div className="relative">
         <IconDisplay
@@ -43,10 +47,12 @@ export function ServiceCardComponent({ card, categoryColor }: ServiceCardProps) 
       <span className="text-sm font-medium text-[var(--color-text-primary)] text-center leading-tight">
         {card.name}
       </span>
-      {card.description && (
+      {card.description ? (
         <span className="text-xs text-[var(--color-text-secondary)] text-center line-clamp-1">
           {card.description}
         </span>
+      ) : (
+        <span className="text-xs h-[1.25rem]" />
       )}
     </a>
   );
