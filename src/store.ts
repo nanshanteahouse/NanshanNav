@@ -73,6 +73,7 @@ const defaultSettings: Settings = {
       statusOffline: '#EF4444',
     },
   },
+  cardAspectRatio: 'auto',
 };
 
 const defaultCategories: Category[] = [

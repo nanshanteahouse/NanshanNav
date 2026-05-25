@@ -70,6 +70,7 @@ export interface Settings {
   pveApiToken: string;
   theme: 'light' | 'dark' | 'system';
   colors: ColorConfig;
+  cardAspectRatio: 'auto' | '1/1' | '4/3' | '3/2' | '16/9';
 }
 
 export interface ServicesConfig {
@@ -150,6 +151,7 @@ export const DEFAULT_SETTINGS: Settings = {
   pveApiToken: '',
   theme: 'system',
   colors: DEFAULT_COLORS,
+  cardAspectRatio: 'auto',
 };
 
 export const DEFAULT_CATEGORIES: Category[] = [
