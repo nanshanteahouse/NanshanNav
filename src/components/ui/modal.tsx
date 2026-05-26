@@ -28,7 +28,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
 
   if (!open) return null;
 
-  const handleOverlayClick = (e: React.MouseEvent) => {
+  // Use onMouseDown instead of onClick to avoid closing when the user
+  // drags a text selection outside the modal boundary.
+  const handleOverlayMouseDown = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose();
   };
 
@@ -36,7 +38,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={handleOverlayClick}
+      onMouseDown={handleOverlayMouseDown}
       role="dialog"
       aria-modal="true"
     >
