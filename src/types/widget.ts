@@ -6,6 +6,7 @@ export const WIDGET_TYPES = [
   'title-header',
   'markdown-text',
   'web-link',
+  'web-page',
   'pve-status',
   'search-box',
   'clock',
@@ -128,6 +129,14 @@ export interface SearchBoxOptions {
   enableLocalSearch: boolean;
   placeholder: string;
   ctrlKEnabled: boolean; // enable Ctrl+K hotkey
+}
+
+// Web Page
+export type WebPageDisplayMode = 'iframe' | 'image' | 'auto';
+
+export interface WebPageOptions {
+  url: string;
+  displayMode: WebPageDisplayMode;
 }
 
 // Clock

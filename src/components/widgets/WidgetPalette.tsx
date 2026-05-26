@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Type, FileText, Link, Server, Search, Clock } from 'lucide-react';
+import { Type, FileText, Link, Globe, Server, Search, Clock } from 'lucide-react';
 import { useDashboardStore } from '@/store/index';
 import { getWidgetDefinition, getWidgetDefinitionsByGroup } from '@/registry/index';
 import type { WidgetType } from '@/types/widget';
@@ -8,6 +8,7 @@ const WIDGET_ICONS: Record<WidgetType, LucideIcon> = {
   'title-header': Type,
   'markdown-text': FileText,
   'web-link': Link,
+  'web-page': Globe,
   'pve-status': Server,
   'search-box': Search,
   'clock': Clock,

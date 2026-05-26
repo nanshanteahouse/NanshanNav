@@ -3,6 +3,7 @@ import { clockDefinition } from './definitions/clock';
 import { titleHeaderDefinition } from './definitions/title-header';
 import { markdownTextDefinition } from './definitions/markdown-text';
 import { webLinkDefinition } from './definitions/web-link';
+import { webPageDefinition } from './definitions/web-page';
 import { pveStatusDefinition } from './definitions/pve-status';
 import { searchBoxDefinition } from './definitions/search-box';
 
@@ -11,6 +12,7 @@ export const registry: WidgetRegistry = {
   'title-header': titleHeaderDefinition,
   'markdown-text': markdownTextDefinition,
   'web-link': webLinkDefinition,
+  'web-page': webPageDefinition,
   'pve-status': pveStatusDefinition,
   'search-box': searchBoxDefinition,
 };
@@ -26,7 +28,7 @@ export function getAllWidgetDefinitions() {
 export function getWidgetDefinitionsByGroup(): Record<string, WidgetType[]> {
   return {
     'Content': ['title-header', 'markdown-text'],
-    'Navigation': ['web-link', 'search-box'],
+    'Navigation': ['web-link', 'web-page', 'search-box'],
     'System': ['pve-status'],
     'Utilities': ['clock'],
   };
