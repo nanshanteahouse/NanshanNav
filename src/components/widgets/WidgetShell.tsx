@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState, useCallback } from 'react';
-import { GripVertical, Settings, Trash2 } from 'lucide-react';
+import { Settings, Trash2 } from 'lucide-react';
 import { useDashboardStore } from '@/store/index';
 import { getWidgetDefinition } from '@/registry/index';
 import type { WidgetConfig } from '@/types/widget';
@@ -45,43 +45,35 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
     <div
       data-widget-type={widget.type}
       data-widget-id={widget.id}
-      className="flex flex-col h-full rounded-[var(--radius-default)] bg-[var(--bg-widget)] shadow-[var(--shadow-widget)] border border-[var(--border-default)] overflow-hidden"
+      className="group relative flex flex-col h-full rounded-[var(--radius-default)] bg-[var(--bg-widget)] shadow-[var(--shadow-widget)] border border-[var(--border-default)] overflow-hidden"
     >
       <div
-        className="group drag-handle flex items-center justify-between px-2 py-1 group-hover:py-2 border-b border-[var(--border-default)] bg-[var(--bg-widget-hover)] cursor-grab active:cursor-grabbing select-none transition-all duration-200"
-        role="button"
-        aria-label={`Drag to move ${displayTitle}`}
-        tabIndex={0}
+        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+        aria-label={`Edit controls for ${displayTitle}`}
       >
-        <div className="flex items-center gap-1 group-hover:gap-2 min-w-0 transition-all duration-200">
-          <GripVertical className="h-3 w-3 group-hover:h-3.5 group-hover:w-3.5 text-[var(--text-muted)] shrink-0 transition-all duration-200" />
-          <span className="text-xs font-medium text-[var(--text-primary)] truncate opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {displayTitle}
-          </span>
-        </div>
-        <div className="flex items-center gap-0.5 group-hover:gap-1 shrink-0 transition-all duration-200">
+        <div className="flex items-center gap-0.5 p-1 rounded-lg bg-[var(--bg-widget-hover)]/90 backdrop-blur-sm border border-[var(--border-default)] shadow-md pointer-events-auto">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setShowSettings(true)}
             aria-label="Widget settings"
-            className="h-6 w-6 group-hover:h-7 group-hover:w-7 transition-all duration-200"
+            className="h-7 w-7"
           >
-            <Settings className="h-3 w-3 group-hover:h-3.5 group-hover:w-3.5 transition-all duration-200" />
+            <Settings className="h-3.5 w-3.5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => removeWidget(widget.id)}
             aria-label="Delete widget"
-            className="h-6 w-6 group-hover:h-7 group-hover:w-7 text-[var(--status-offline)] hover:text-[var(--status-offline)] transition-all duration-200"
+            className="h-7 w-7 text-[var(--status-offline)] hover:text-[var(--status-offline)]"
           >
-            <Trash2 className="h-3 w-3 group-hover:h-3.5 group-hover:w-3.5 transition-all duration-200" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
 
-      <div className="widget-body flex-1 overflow-hidden">{children}</div>
+      <div className="widget-body h-full overflow-hidden">{children}</div>
 
       <WidgetSettings
         widgetId={widget.id}

@@ -218,7 +218,6 @@ export function DashboardCanvas() {
         onLayoutChange={handleLayoutChange}
         dragConfig={{
           enabled: editMode,
-          handle: '.drag-handle',
         }}
         resizeConfig={{
           enabled: editMode,
