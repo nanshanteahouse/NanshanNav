@@ -9,7 +9,7 @@ export default function TitleHeaderWidget({ widgetId, options }: WidgetComponent
   const title = useDashboardStore((s) => s.widgets.find((w) => w.id === widgetId)?.title ?? '');
 
   const IconComponent: LucideIcon | undefined = opts.iconName
-    ? (icons[opts.iconName] as LucideIcon | undefined)
+    ? (icons as Record<string, LucideIcon>)[opts.iconName]
     : undefined;
 
   const headingLabels: Record<string, string> = {

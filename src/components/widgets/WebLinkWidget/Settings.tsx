@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { WidgetSettingsProps, WebLinkOptions, LinkItem } from '@/types/widget.ts';
 import { generateId } from '@/lib/utils/generate-id.ts';
+import { IconPicker } from '@/components/ui/icon-picker';
 import { Trash2, Plus } from 'lucide-react';
 
 export default function WebLinkSettings({ widgetId: _widgetId, options, onChange, onDelete }: WidgetSettingsProps) {
@@ -154,17 +155,12 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
                   value={link.url}
                   onChange={(e) => updateLink(index, { url: e.target.value })}
                 />
-                <input
-                  type="text"
-                  className="rounded border px-3 py-2 text-sm"
-                  style={{
-                    backgroundColor: 'var(--bg-input)',
-                    borderColor: 'var(--border-default)',
-                    color: 'var(--text-primary)',
-                  }}
-                  placeholder="Icon (lucide icon name)"
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  Icon
+                </span>
+                <IconPicker
                   value={link.icon}
-                  onChange={(e) => updateLink(index, { icon: e.target.value })}
+                  onChange={(iconName) => updateLink(index, { icon: iconName })}
                 />
                 <input
                   type="text"

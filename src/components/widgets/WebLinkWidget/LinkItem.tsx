@@ -1,4 +1,5 @@
-import { Globe } from 'lucide-react';
+import { icons, Globe } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { LinkItem } from '@/types/widget.ts';
 import HealthIndicator from './HealthIndicator.tsx';
 
@@ -9,6 +10,11 @@ interface LinkItemCardProps {
 }
 
 export default function LinkItemCard({ link, reachable, onClick }: LinkItemCardProps) {
+  const IconComponent: LucideIcon =
+    link.icon && (icons as Record<string, LucideIcon>)[link.icon]
+      ? (icons as Record<string, LucideIcon>)[link.icon]
+      : Globe;
+
   return (
     <button
       type="button"
@@ -27,7 +33,7 @@ export default function LinkItemCard({ link, reachable, onClick }: LinkItemCardP
       }}
     >
       <div className="flex-shrink-0">
-        <Globe
+        <IconComponent
           className="h-7 w-7"
           style={{ color: 'var(--accent-primary)' }}
         />
