@@ -1,5 +1,6 @@
 import type { WidgetSettingsProps, TitleHeaderOptions } from '@/types/widget.ts';
 import { Trash2 } from 'lucide-react';
+import { IconPicker } from '@/components/ui/icon-picker';
 
 export default function TitleHeaderSettings({ widgetId: _widgetId, options, onChange, onDelete }: WidgetSettingsProps) {
   const opts = options as unknown as TitleHeaderOptions;
@@ -17,6 +18,16 @@ export default function TitleHeaderSettings({ widgetId: _widgetId, options, onCh
 
   return (
     <div className="flex flex-col gap-5">
+      <label className="flex flex-col gap-1.5">
+        <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+          Icon
+        </span>
+        <IconPicker
+          value={opts.iconName}
+          onChange={(iconName) => update({ iconName })}
+        />
+      </label>
+
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           Heading Level
