@@ -155,12 +155,10 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
                   value={link.url}
                   onChange={(e) => updateLink(index, { url: e.target.value })}
                 />
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Icon
-                </span>
                 <IconPicker
                   value={link.icon}
                   onChange={(iconName) => updateLink(index, { icon: iconName })}
+                  variant="popover"
                 />
                 <input
                   type="text"
