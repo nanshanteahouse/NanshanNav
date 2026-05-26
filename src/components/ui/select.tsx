@@ -1,0 +1,24 @@
+import type { SelectHTMLAttributes, ReactNode } from 'react';
+
+function cn(...classes: (string | undefined | false | null)[]): string {
+  return classes.filter(Boolean).join(' ');
+}
+
+export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  className?: string;
+  children: ReactNode;
+}
+
+export function Select({ className, children, ...props }: SelectProps) {
+  return (
+    <select
+      className={cn(
+        'w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)] transition-colors duration-[var(--transition-fast)] focus:border-[var(--border-focus)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20 appearance-none cursor-pointer',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </select>
+  );
+}
