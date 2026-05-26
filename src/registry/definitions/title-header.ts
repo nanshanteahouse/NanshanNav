@@ -10,6 +10,7 @@ export const titleHeaderDefinition: WidgetDefinition<'title-header'> = {
     headingLevel: 'h2',
     textAlign: 'center',
     showDivider: true,
+    iconName: '',
   },
   componentLoader: () => import('@/components/widgets/TitleHeaderWidget'),
   settingsLoader: () => import('@/components/widgets/TitleHeaderWidget/Settings'),

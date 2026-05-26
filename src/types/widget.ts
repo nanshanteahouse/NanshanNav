@@ -83,6 +83,8 @@ export interface TitleHeaderOptions {
   headingLevel: 'h1' | 'h2' | 'h3' | 'h4';
   textAlign: 'left' | 'center' | 'right';
   showDivider: boolean;
+  /** Lucide icon name (PascalCase), empty string means no icon */
+  iconName: string;
 }
 
 // Markdown Text
