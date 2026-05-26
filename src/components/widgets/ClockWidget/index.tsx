@@ -12,7 +12,7 @@ export default function ClockWidget({ widgetId: _widgetId, options, isEditMode: 
 
   return (
     <div
-      className="flex h-full w-full items-center justify-center overflow-hidden p-2"
+      className="flex h-full w-full items-center justify-center overflow-hidden p-3"
       data-widget-type="clock"
     >
       {opts.displayMode === 'analog' ? (

@@ -73,7 +73,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
 
   return (
     <Modal open={open} onClose={onClose} title={`Configure ${displayTitle}`}>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
         <div>
           <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
             Widget Title
@@ -82,7 +82,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
             type="text"
             value={widget?.title ?? ''}
             onChange={(e) => updateWidget(widgetId, { title: e.target.value })}
-            className="mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:outline-none"
+            className="mt-1 w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none"
             style={{
               borderColor: 'var(--border-default)',
               backgroundColor: 'var(--bg-input)',
@@ -92,7 +92,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
           />
         </div>
 
-        <div className="border-t pt-4" style={{ borderColor: 'var(--border-default)' }}>
+        <div className="border-t pt-5" style={{ borderColor: 'var(--border-default)' }}>
           {loadError ? (
             <div className="p-4 text-center" style={{ color: 'var(--status-offline)' }}>
               {loadError}
@@ -120,7 +120,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
           )}
         </div>
 
-        <div className="border-t pt-4" style={{ borderColor: 'var(--border-default)' }}>
+        <div className="border-t pt-5" style={{ borderColor: 'var(--border-default)' }}>
           <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
             Type: {widget?.type} &middot; ID: {widgetId}
           </p>

@@ -12,7 +12,7 @@ export default function LinkItemCard({ link, reachable, onClick }: LinkItemCardP
   return (
     <button
       type="button"
-      className="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors"
+      className="flex w-full items-center gap-3 rounded-lg p-4 text-left transition-colors"
       style={{
         backgroundColor: 'transparent',
         cursor: 'pointer',
@@ -28,7 +28,7 @@ export default function LinkItemCard({ link, reachable, onClick }: LinkItemCardP
     >
       <div className="flex-shrink-0">
         <Globe
-          className="h-6 w-6"
+          className="h-7 w-7"
           style={{ color: 'var(--accent-primary)' }}
         />
       </div>

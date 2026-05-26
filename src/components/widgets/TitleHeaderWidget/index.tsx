@@ -34,7 +34,7 @@ export default function TitleHeaderWidget({ widgetId, options }: WidgetComponent
   );
 
   return (
-    <div className="flex h-full w-full items-center p-3" data-widget-type="title-header">
+    <div className="flex h-full w-full items-center p-4" data-widget-type="title-header">
       <div className="w-full" style={{ textAlign: opts.textAlign }}>
         {headingEl}
         {opts.showDivider && (

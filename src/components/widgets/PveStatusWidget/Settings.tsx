@@ -9,14 +9,14 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           Proxmox Host
         </span>
         <input
           type="text"
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-md border px-4 py-2.5 text-sm"
           style={{
             backgroundColor: 'var(--bg-input)',
             borderColor: 'var(--border-default)',
@@ -34,7 +34,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
         </span>
         <input
           type="text"
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-md border px-4 py-2.5 text-sm"
           style={{
             backgroundColor: 'var(--bg-input)',
             borderColor: 'var(--border-default)',
@@ -52,7 +52,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
         </span>
         <input
           type="password"
-          className="rounded-md border px-3 py-2 text-sm font-mono"
+          className="rounded-md border px-4 py-2.5 text-sm font-mono"
           style={{
             backgroundColor: 'var(--bg-input)',
             borderColor: 'var(--border-default)',
@@ -135,7 +135,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
         </span>
         <input
           type="number"
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-md border px-4 py-2.5 text-sm"
           style={{
             backgroundColor: 'var(--bg-input)',
             borderColor: 'var(--border-default)',

@@ -26,7 +26,7 @@ export function Sidebar() {
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <div className="p-3">
+      <div className="p-4">
         <WidgetPalette />
       </div>
     </aside>

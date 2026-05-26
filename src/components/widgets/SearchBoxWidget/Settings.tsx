@@ -9,13 +9,13 @@ export default function SearchBoxSettings({ widgetId: _widgetId, options, onChan
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           Default Engine
         </span>
         <select
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-md border px-4 py-2.5 text-sm"
           style={{
             backgroundColor: 'var(--bg-input)',
             borderColor: 'var(--border-default)',
@@ -39,7 +39,7 @@ export default function SearchBoxSettings({ widgetId: _widgetId, options, onChan
           </span>
           <input
             type="text"
-            className="rounded-md border px-3 py-2 text-sm"
+            className="rounded-md border px-4 py-2.5 text-sm"
             style={{
               backgroundColor: 'var(--bg-input)',
               borderColor: 'var(--border-default)',
@@ -70,7 +70,7 @@ export default function SearchBoxSettings({ widgetId: _widgetId, options, onChan
         </span>
         <input
           type="text"
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-md border px-4 py-2.5 text-sm"
           style={{
             backgroundColor: 'var(--bg-input)',
             borderColor: 'var(--border-default)',

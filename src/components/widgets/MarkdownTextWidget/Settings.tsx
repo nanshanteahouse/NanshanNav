@@ -21,7 +21,7 @@ export default function MarkdownTextSettings({ widgetId: _widgetId, options, onC
   }, [opts, onChange]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           Content
@@ -59,7 +59,7 @@ export default function MarkdownTextSettings({ widgetId: _widgetId, options, onC
         </div>
       ) : (
         <textarea
-          className="w-full resize-y rounded-md border px-3 py-2 font-mono text-sm"
+          className="w-full resize-y rounded-md border px-4 py-2.5 font-mono text-sm"
           style={{
             backgroundColor: 'var(--bg-input)',
             borderColor: 'var(--border-default)',

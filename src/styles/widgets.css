@@ -60,12 +60,12 @@
 .widget-body {
   flex: 1;
   overflow: auto;
-  padding: 12px;
+  padding: 16px;
 }
 
 /* In view mode, hide the header */
 .widget-shell:not(:has(.drag-handle)) .widget-body {
-  padding: 12px;
+  padding: 16px;
 }
 
 /* Grid Lines */
@@ -150,7 +150,7 @@
   z-index: 50;
   max-height: 240px;
   overflow-y: auto;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .search-suggestion-item {

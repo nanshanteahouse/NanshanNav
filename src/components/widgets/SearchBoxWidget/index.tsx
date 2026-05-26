@@ -112,7 +112,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
 
   return (
     <div
-      className="flex h-full w-full flex-col items-center justify-center p-2"
+      className="flex h-full w-full flex-col items-center justify-center p-3"
       data-widget-type="search-box"
     >
       <div className="relative w-full max-w-xl">
@@ -123,7 +123,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
             className="rounded-l-lg cursor-pointer shrink-0"
             style={{
               width: '36px',
-              height: '36px',
+              height: '40px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -176,7 +176,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
             className="rounded-r-lg cursor-pointer shrink-0"
             style={{
               width: '36px',
-              height: '36px',
+              height: '40px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -188,7 +188,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
             onClick={handleSearch}
             aria-label="Search"
           >
-            <Search className="h-4 w-4" />
+            <Search className="h-5 w-5" />
           </button>
         </div>
 

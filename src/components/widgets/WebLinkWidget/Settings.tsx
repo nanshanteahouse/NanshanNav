@@ -74,7 +74,7 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
           </span>
           <input
             type="number"
-            className="rounded-md border px-3 py-2 text-sm"
+            className="rounded-md border px-4 py-2.5 text-sm"
             style={{
               backgroundColor: 'var(--bg-input)',
               borderColor: 'var(--border-default)',
@@ -107,11 +107,11 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
           </button>
         </div>
 
-        <div className="flex flex-col gap-4">
+<div className="flex flex-col gap-5">
           {links.map((link, index) => (
             <div
               key={link.id || index}
-              className="rounded-md border p-3"
+              className="rounded-md border p-4"
               style={{ borderColor: 'var(--border-default)' }}
             >
               <div className="mb-2 flex items-center justify-between">
@@ -132,7 +132,7 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
               <div className="flex flex-col gap-2">
                 <input
                   type="text"
-                  className="rounded border px-2 py-1.5 text-sm"
+                  className="rounded border px-3 py-2 text-sm"
                   style={{
                     backgroundColor: 'var(--bg-input)',
                     borderColor: 'var(--border-default)',
@@ -144,7 +144,7 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
                 />
                 <input
                   type="text"
-                  className="rounded border px-2 py-1.5 text-sm"
+                  className="rounded border px-3 py-2 text-sm"
                   style={{
                     backgroundColor: 'var(--bg-input)',
                     borderColor: 'var(--border-default)',
@@ -156,7 +156,7 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
                 />
                 <input
                   type="text"
-                  className="rounded border px-2 py-1.5 text-sm"
+                  className="rounded border px-3 py-2 text-sm"
                   style={{
                     backgroundColor: 'var(--bg-input)',
                     borderColor: 'var(--border-default)',
@@ -168,7 +168,7 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
                 />
                 <input
                   type="text"
-                  className="rounded border px-2 py-1.5 text-sm"
+                  className="rounded border px-3 py-2 text-sm"
                   style={{
                     backgroundColor: 'var(--bg-input)',
                     borderColor: 'var(--border-default)',

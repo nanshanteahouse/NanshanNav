@@ -24,7 +24,7 @@ export default function CpuBar({ cpu, cpuinfo }: CpuBarProps) {
         </span>
       </div>
       <div
-        className="h-2 w-full overflow-hidden rounded-full"
+        className="h-3 w-full overflow-hidden rounded-full"
         style={{ backgroundColor: 'var(--border-default)' }}
       >
         <div

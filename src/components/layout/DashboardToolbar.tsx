@@ -10,12 +10,12 @@ export function DashboardToolbar() {
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center justify-between px-4 py-2 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-[var(--shadow-sm)]"
+      className="sticky top-0 z-40 flex items-center justify-between px-8 py-5 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-[var(--shadow-sm)]"
       role="toolbar"
       aria-label="Dashboard toolbar"
     >
       <div className="flex items-center gap-3">
-        <h1 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">
+        <h1 className="text-xl font-semibold text-[var(--text-primary)] tracking-tight">
           {dashboardTitle}
         </h1>
       </div>
