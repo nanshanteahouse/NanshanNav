@@ -31,7 +31,15 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   // Use onMouseDown instead of onClick to avoid closing when the user
   // drags a text selection outside the modal boundary.
   const handleOverlayMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (e.target === overlayRef.current) onClose();
+  };
+
+  // Prevent mouse events from bubbling to document-level listeners
+  // (e.g. react-grid-layout's drag system) to avoid dragging
+  // underlying widgets during text selection inside the modal.
+  const blockPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
 
   return createPortal(
@@ -39,6 +47,8 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onMouseDown={handleOverlayMouseDown}
+      onMouseMove={blockPropagation}
+      onMouseUp={blockPropagation}
       role="dialog"
       aria-modal="true"
     >
