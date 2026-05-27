@@ -2,10 +2,16 @@
 # NanshanNav — Nginx configuration example (upload server + Authelia auth)
 # =============================================================================
 # This snippet supplements an existing Nginx + Authelia setup with the
-# upload API and static file serving locations required by the image upload
-# feature.
+# upload API, static file serving, and admin-protected location for the
+# dashboard edit mode.
 #
 # Place relevant blocks inside the appropriate server { } context.
+#
+# REQUIREMENTS:
+#   - The main SPA (index.html) must be served at both / and /admin.
+#     Add the following to your existing SPA location blocks:
+#       location / { try_files $uri $uri/ /index.html; }
+#       location /admin { try_files $uri $uri/ /index.html; }   # see below
 # =============================================================================
 
 # ---------------------------------------------------------------------------
@@ -72,4 +78,26 @@ location /api/pve/ {
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
+}
+
+# ---------------------------------------------------------------------------
+# Admin SPA — same dashboard app but auto-activates edit mode
+#
+# The frontend useAutoEditMode hook checks window.location.pathname and
+# automatically enables edit mode when the path starts with /admin.
+#
+# Add auth_request here to restrict edit access. Remove or comment out
+# the auth lines if you want the edit UI publicly accessible.
+#
+# IMPORTANT: This location MUST serve the same index.html as the root
+# location / to ensure the SPA handles the /admin route correctly.
+# ---------------------------------------------------------------------------
+location /admin {
+    auth_request /authelia;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+    add_header Set-Cookie $auth_cookie;
+
+    # Point this to the same root as your main SPA location
+    root /var/www/nanshan-nav/dist;
+    try_files $uri $uri/ /index.html;
 }
