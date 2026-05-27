@@ -20,7 +20,7 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
 
   return (
     <div
-      className="h-full w-full overflow-auto p-5"
+      className="h-full w-full overflow-auto p-4"
       data-widget-type="markdown-text"
       style={{
         wordBreak: 'break-word',
@@ -39,6 +39,7 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
         </ReactMarkdown>
       </div>
       <style>{`
+        .prose > *:first-child { margin-top: 0; }
         .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
           color: var(--text-primary);
           margin-top: 1.5em;
