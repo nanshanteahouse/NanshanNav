@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import type { WidgetSettingsProps, PveStatusOptions } from '@/types/widget.ts';
 import { Trash2 } from 'lucide-react';
 
@@ -6,6 +7,68 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
 
   const update = (patch: Partial<PveStatusOptions>) => {
     onChange({ ...opts, ...patch });
+  };
+
+  // ── Token management (API-direct, not via Zustand) ──
+  const [tokenInput, setTokenInput] = useState('');
+  const [maskedToken, setMaskedToken] = useState('');
+  const [hasToken, setHasToken] = useState(false);
+  const [tokenSource, setTokenSource] = useState<'host' | 'default' | null>(null);
+  const [tokenSaving, setTokenSaving] = useState(false);
+
+  useEffect(() => {
+    const host = opts.proxmoxHost;
+    if (!host) {
+      setHasToken(false);
+      setMaskedToken('');
+      setTokenSource(null);
+      return;
+    }
+    fetch(`/api/pve/tokens?host=${encodeURIComponent(host)}`)
+      .then((r) => r.json())
+      .then((data: { hasToken: boolean; masked?: string; source?: string }) => {
+        setHasToken(data.hasToken);
+        if (data.masked) setMaskedToken(data.masked);
+        setTokenSource(data.source as 'host' | 'default' | null);
+      })
+      .catch(() => {});
+  }, [opts.proxmoxHost]);
+
+  const handleSaveToken = async () => {
+    if (!tokenInput.trim() || !opts.proxmoxHost) return;
+    setTokenSaving(true);
+    try {
+      const res = await fetch('/api/pve/tokens', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host: opts.proxmoxHost, token: tokenInput.trim() }),
+      });
+      if (!res.ok) throw new Error('Failed to save');
+      const data = await res.json() as { masked: string };
+      setHasToken(true);
+      setMaskedToken(data.masked);
+      setTokenSource('host');
+      setTokenInput('');
+    } catch {
+    } finally {
+      setTokenSaving(false);
+    }
+  };
+
+  const handleClearToken = async () => {
+    if (!opts.proxmoxHost) return;
+    setTokenSaving(true);
+    try {
+      await fetch(`/api/pve/tokens?host=${encodeURIComponent(opts.proxmoxHost)}`, {
+        method: 'DELETE',
+      });
+      setHasToken(false);
+      setMaskedToken('');
+      setTokenSource(null);
+    } catch {
+    } finally {
+      setTokenSaving(false);
+    }
   };
 
   return (
@@ -46,26 +109,57 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
         />
       </label>
 
-      <label className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           API Token
         </span>
-        <input
-          type="password"
-          className="rounded-md border px-4 py-2.5 text-sm font-mono"
-          style={{
-            backgroundColor: 'var(--bg-input)',
-            borderColor: 'var(--border-default)',
-            color: 'var(--text-primary)',
-          }}
-          value={opts.apiToken}
-          onChange={(e) => update({ apiToken: e.target.value })}
-          placeholder="monitor@pve!dashboard=YOUR_SECRET"
-        />
+        <div className="flex gap-2">
+          <input
+            type="password"
+            className="flex-1 rounded-md border px-4 py-2.5 text-sm font-mono"
+            style={{
+              backgroundColor: 'var(--bg-input)',
+              borderColor: hasToken ? 'var(--status-online)' : 'var(--border-default)',
+              color: 'var(--text-primary)',
+            }}
+            value={tokenInput}
+            onChange={(e) => setTokenInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveToken(); }}
+            placeholder={hasToken ? maskedToken : 'monitor@pve!dashboard=...'}
+            disabled={tokenSaving}
+          />
+          {hasToken && !tokenInput && (
+            <button
+              type="button"
+              className="rounded-md px-3 py-2 text-sm font-medium"
+              style={{ backgroundColor: 'var(--status-offline)', color: '#fff' }}
+              onClick={handleClearToken}
+              disabled={tokenSaving}
+            >
+              Clear
+            </button>
+          )}
+          {tokenInput.trim() && (
+            <button
+              type="button"
+              className="rounded-md px-3 py-2 text-sm font-medium"
+              style={{ backgroundColor: 'var(--accent-primary)', color: '#fff' }}
+              onClick={handleSaveToken}
+              disabled={tokenSaving}
+            >
+              {tokenSaving ? '...' : 'Save'}
+            </button>
+          )}
+        </div>
+        {hasToken && !tokenInput && (
+          <p className="text-[11px]" style={{ color: 'var(--status-online)' }}>
+            {tokenSource === 'default' ? 'Using default token' : 'Token configured'}
+          </p>
+        )}
         <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-          Format: user@realm!tokenid=secret
+          Format: user@realm!tokenid=secret. Stored server-side only.
         </p>
-      </label>
+      </div>
 
       <div className="flex flex-col gap-2">
         <label className="flex items-center gap-3">

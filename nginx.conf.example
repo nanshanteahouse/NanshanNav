@@ -63,3 +63,13 @@ location /uploads/ {
     expires 30d;
     add_header Cache-Control "public, immutable";
 }
+
+# ---------------------------------------------------------------------------
+# PVE API — proxied to the Hono server (port 3001) which handles token auth
+# ---------------------------------------------------------------------------
+location /api/pve/ {
+    proxy_pass http://127.0.0.1:3001;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}

@@ -117,7 +117,6 @@ export interface WebLinkOptions {
 export interface PveStatusOptions {
   proxmoxHost: string; // e.g., 'pve.lan:8006'
   nodeName: string; // e.g., 'pve'
-  apiToken: string;
   showCpu: boolean;
   showMemory: boolean;
   showUptime: boolean;

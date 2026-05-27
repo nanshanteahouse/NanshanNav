@@ -27,3 +27,6 @@ dist-ssr
 .sisyphus/
 
 SPEC.md
+
+# PVE API token config
+server/config/pve-tokens.json

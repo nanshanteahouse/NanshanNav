@@ -1,0 +1,7 @@
+{
+  "default": "monitor@pve!dashboard=YOUR_SECRET_HERE",
+  "hosts": {
+    "pve.lan:8006": "monitor@pve!dashboard=SECRET_FOR_PVE",
+    "pve2.lan:8006": "monitor@pve2!dashboard=SECRET_FOR_PVE2"
+  }
+}

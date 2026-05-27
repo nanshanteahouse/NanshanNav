@@ -4,13 +4,11 @@ import type { PveNodeStatus, PveClusterResource } from '@/types/pve.ts';
 interface PveStatusOptions {
   proxmoxHost: string;
   nodeName: string;
-  apiToken: string;
   refreshInterval: number;
 }
 
-function authHeaders(token: string, host: string): Record<string, string> {
+function authHeaders(host: string): Record<string, string> {
   const headers: Record<string, string> = {};
-  if (token) headers['X-PVE-Token'] = token;
   if (host) headers['X-PVE-Host'] = host;
   return headers;
 }
@@ -23,7 +21,7 @@ export function usePveStatus(options: PveStatusOptions) {
     queryKey: ['pve', 'status', host, node],
     queryFn: async () => {
       const res = await fetch(`/api/pve/nodes/${encodeURIComponent(node)}/status`, {
-        headers: authHeaders(options.apiToken, host),
+        headers: authHeaders(host),
       });
       if (!res.ok) throw new Error(`PVE API error: ${res.statusText}`);
       const json = await res.json() as { data: PveNodeStatus };
@@ -38,7 +36,7 @@ export function usePveStatus(options: PveStatusOptions) {
     queryKey: ['pve', 'resources', host],
     queryFn: async () => {
       const res = await fetch('/api/pve/cluster/resources', {
-        headers: authHeaders(options.apiToken, host),
+        headers: authHeaders(host),
       });
       if (!res.ok) throw new Error(`PVE API error: ${res.statusText}`);
       const json = await res.json() as { data: PveClusterResource[] };

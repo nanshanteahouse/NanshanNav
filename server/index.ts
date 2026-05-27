@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import pveProxy from './routes/pve-proxy.js';
 
 const ALLOWED_TYPES = [
   'image/jpeg',
@@ -40,6 +41,8 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
   if (buffer.length < expected.length) return false;
   return expected.every((byte, i) => buffer[i] === byte);
 }
+
+app.route('/api/pve', pveProxy);
 
 app.post('/api/upload', async (c) => {
   try {

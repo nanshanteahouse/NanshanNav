@@ -9,7 +9,6 @@ export const pveStatusDefinition: WidgetDefinition<'pve-status'> = {
   defaultOptions: {
     proxmoxHost: '',
     nodeName: 'pve',
-    apiToken: '',
     showCpu: true,
     showMemory: true,
     showUptime: true,
