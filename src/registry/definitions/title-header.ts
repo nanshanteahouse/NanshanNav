@@ -4,7 +4,7 @@ export const titleHeaderDefinition: WidgetDefinition<'title-header'> = {
   kind: 'title-header',
   displayName: '标题',
   icon: 'Heading',
-  defaultSize: { w: 4, h: 1 },
+  defaultSize: { w: 4, h: 2 },
   minSize: { w: 2, h: 1 },
   defaultOptions: {
     headingLevel: 'h2',

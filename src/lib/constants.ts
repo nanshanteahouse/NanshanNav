@@ -48,9 +48,10 @@ export const SEARCH_ENGINES = {
 } as const;
 
 export const DEFAULT_WIDGET_SIZE: Record<WidgetType, { w: number; h: number }> = {
-  'title-header': { w: 4, h: 1 },
+  'title-header': { w: 4, h: 2 },
   'markdown-text': { w: 4, h: 4 },
   'web-link': { w: 4, h: 4 },
+  'web-page': { w: 4, h: 4 },
   'pve-status': { w: 4, h: 5 },
   'search-box': { w: 4, h: 2 },
   'clock': { w: 4, h: 4 },
