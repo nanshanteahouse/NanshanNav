@@ -9,6 +9,7 @@ export const webPageDefinition: WidgetDefinition<'web-page'> = {
   defaultOptions: {
     url: '',
     displayMode: 'auto',
+    imageSize: 'contain',
   },
   componentLoader: () => import('@/components/widgets/WebPageWidget'),
   settingsLoader: () => import('@/components/widgets/WebPageWidget/Settings'),
