@@ -5,7 +5,7 @@ export const webPageDefinition: WidgetDefinition<'web-page'> = {
   displayName: '网页',
   icon: 'Globe',
   defaultSize: { w: 4, h: 4 },
-  minSize: { w: 2, h: 2 },
+  minSize: { w: 1, h: 1 },
   defaultOptions: {
     url: '',
     displayMode: 'auto',
