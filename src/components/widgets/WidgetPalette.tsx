@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Type, FileText, Link, Globe, Server, Search, Clock } from 'lucide-react';
+import { Type, FileText, Link, Globe, Server, Search, Clock, Image } from 'lucide-react';
 import { useDashboardStore } from '@/store/index';
 import { getWidgetDefinition, getWidgetDefinitionsByGroup } from '@/registry/index';
 import type { WidgetType } from '@/types/widget';
@@ -12,6 +12,7 @@ const WIDGET_ICONS: Record<WidgetType, LucideIcon> = {
   'pve-status': Server,
   'search-box': Search,
   'clock': Clock,
+  'image': Image,
 };
 
 export function WidgetPalette() {
