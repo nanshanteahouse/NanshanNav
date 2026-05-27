@@ -7,9 +7,12 @@ interface LinkItemCardProps {
   link: LinkItem;
   reachable: boolean | null;
   onClick: () => void;
+  showName?: boolean;
+  showUrl?: boolean;
+  showDescription?: boolean;
 }
 
-export default function LinkItemCard({ link, reachable, onClick }: LinkItemCardProps) {
+export default function LinkItemCard({ link, reachable, onClick, showName = true, showUrl = true, showDescription = true }: LinkItemCardProps) {
   const IconComponent: LucideIcon =
     link.icon && (icons as Record<string, LucideIcon>)[link.icon]
       ? (icons as Record<string, LucideIcon>)[link.icon]
@@ -40,16 +43,18 @@ export default function LinkItemCard({ link, reachable, onClick }: LinkItemCardP
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span
-            className="truncate text-sm font-semibold"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {link.name}
-          </span>
-          <HealthIndicator reachable={reachable} />
-        </div>
-        {link.description && (
+        {showName && (
+          <div className="flex items-center gap-2">
+            <span
+              className="truncate text-sm font-semibold"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {link.name}
+            </span>
+            <HealthIndicator reachable={reachable} />
+          </div>
+        )}
+        {showDescription && link.description && (
           <p
             className="mt-0.5 truncate text-xs"
             style={{ color: 'var(--text-secondary)' }}
@@ -57,12 +62,14 @@ export default function LinkItemCard({ link, reachable, onClick }: LinkItemCardP
             {link.description}
           </p>
         )}
-        <span
-          className="mt-0.5 block truncate text-xs"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          {link.url}
-        </span>
+        {showUrl && (
+          <span
+            className="mt-0.5 block truncate text-xs"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {link.url}
+          </span>
+        )}
       </div>
     </button>
   );

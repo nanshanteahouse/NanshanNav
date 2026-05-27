@@ -8,6 +8,9 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
   const links: LinkItem[] = Array.isArray(opts.links) ? opts.links : [];
   const healthEnabled = opts.healthCheckEnabled;
   const interval = (opts.healthCheckInterval || 60) * 1000;
+  const showName = opts.showName ?? true;
+  const showUrl = opts.showUrl ?? true;
+  const showDescription = opts.showDescription ?? true;
 
   const hasLinks = links.length > 0;
 
@@ -43,12 +46,18 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
               link={link}
               interval={interval}
               onClick={() => handleClick(link.url)}
+              showName={showName}
+              showUrl={showUrl}
+              showDescription={showDescription}
             />
           ) : (
             <LinkItemCard
               link={link}
               reachable={null}
               onClick={() => handleClick(link.url)}
+              showName={showName}
+              showUrl={showUrl}
+              showDescription={showDescription}
             />
           )}
           {index < links.length - 1 && (
@@ -64,10 +73,16 @@ function LinkHealthWrapper({
   link,
   interval,
   onClick,
+  showName,
+  showUrl,
+  showDescription,
 }: {
   link: LinkItem;
   interval: number;
   onClick: () => void;
+  showName: boolean;
+  showUrl: boolean;
+  showDescription: boolean;
 }) {
   const { data: result } = useQuery({
     queryKey: ['link-health', link.url],
@@ -82,6 +97,9 @@ function LinkHealthWrapper({
       link={link}
       reachable={result ? result.reachable : null}
       onClick={onClick}
+      showName={showName}
+      showUrl={showUrl}
+      showDescription={showDescription}
     />
   );
 }

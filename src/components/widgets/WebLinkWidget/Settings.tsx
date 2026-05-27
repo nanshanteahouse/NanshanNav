@@ -90,6 +90,41 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
       )}
 
       <div className="border-t pt-4" style={{ borderColor: 'var(--border-default)' }}>
+        <span className="block mb-2 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+          Display Fields
+        </span>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded"
+              checked={opts.showName ?? true}
+              onChange={(e) => onChange({ ...opts, showName: e.target.checked })}
+            />
+            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Name</span>
+          </label>
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded"
+              checked={opts.showUrl ?? true}
+              onChange={(e) => onChange({ ...opts, showUrl: e.target.checked })}
+            />
+            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>URL</span>
+          </label>
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded"
+              checked={opts.showDescription ?? true}
+              onChange={(e) => onChange({ ...opts, showDescription: e.target.checked })}
+            />
+            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Description</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="border-t pt-4" style={{ borderColor: 'var(--border-default)' }}>
         <div className="mb-3 flex items-center justify-between">
           <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
             Links

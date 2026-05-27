@@ -107,6 +107,9 @@ export interface WebLinkOptions {
   openInNewTab: boolean;
   healthCheckEnabled: boolean;
   healthCheckInterval: number; // seconds, default 60
+  showName: boolean;
+  showUrl: boolean;
+  showDescription: boolean;
 }
 
 // PVE Status
