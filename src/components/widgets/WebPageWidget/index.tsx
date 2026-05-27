@@ -13,7 +13,7 @@ function resolveDisplayMode(mode: WebPageDisplayMode, url: string): 'iframe' | '
   return mode;
 }
 
-export default function WebPageWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
+export default function WebPageWidget({ widgetId: _widgetId, options, isEditMode, width: _width, height: _height }: WidgetComponentProps) {
   const opts = options as unknown as WebPageOptions;
   const url = opts.url?.trim() || '';
   const displayMode = resolveDisplayMode(opts.displayMode || 'auto', url);
@@ -32,20 +32,22 @@ export default function WebPageWidget({ widgetId: _widgetId, options, isEditMode
 
   return (
     <div className="relative h-full w-full overflow-hidden" data-widget-type="web-page">
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-md transition-opacity opacity-0 hover:opacity-100"
-        style={{
-          backgroundColor: 'var(--bg-widget-hover)',
-          border: '1px solid var(--border-default)',
-        }}
-        title="Open in new tab"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ExternalLink className="h-3.5 w-3.5" style={{ color: 'var(--text-secondary)' }} />
-      </a>
+      {!isEditMode && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-md transition-opacity opacity-0 hover:opacity-100"
+          style={{
+            backgroundColor: 'var(--bg-widget-hover)',
+            border: '1px solid var(--border-default)',
+          }}
+          title="Open in new tab"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ExternalLink className="h-3.5 w-3.5" style={{ color: 'var(--text-secondary)' }} />
+        </a>
+      )}
 
       {displayMode === 'image' ? (
         <img
