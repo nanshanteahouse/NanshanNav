@@ -72,7 +72,7 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
 
   return (
     <div
-      className="flex h-full w-full flex-col gap-4 overflow-auto p-4"
+      className="flex h-full w-full flex-col gap-2 overflow-auto p-4"
       data-widget-type="pve-status"
     >
       <div className="text-center">
