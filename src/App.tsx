@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useDashboardStore } from './store'
 import { AppLayout } from './components/layout/AppLayout'
 import { useKeyboardShortcut } from './hooks/useKeyboardShortcut'
+import { useAutoEditMode } from './hooks/useAutoEditMode'
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
   const darkMode = useDashboardStore(s => s.settings.darkMode)
@@ -15,6 +16,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   useKeyboardShortcut()
+  useAutoEditMode()
 
   return (
     <ThemeProvider>
