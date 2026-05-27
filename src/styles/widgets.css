@@ -93,15 +93,18 @@
 }
 
 /* Scrollbar styling */
-.widget-body::-webkit-scrollbar {
+.widget-body::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar {
   width: 4px;
 }
 
-.widget-body::-webkit-scrollbar-track {
+.widget-body::-webkit-scrollbar-track,
+.modal-body::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.widget-body::-webkit-scrollbar-thumb {
+.widget-body::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb {
   background: var(--border-default);
   border-radius: 2px;
 }
