@@ -8,9 +8,6 @@ export const webPageDefinition: WidgetDefinition<'web-page'> = {
   minSize: { w: 1, h: 1 },
   defaultOptions: {
     url: '',
-    displayMode: 'auto',
-    imageSize: 'contain',
-    imageAlign: 'center',
   },
   componentLoader: () => import('@/components/widgets/WebPageWidget'),
   settingsLoader: () => import('@/components/widgets/WebPageWidget/Settings'),
