@@ -11,6 +11,7 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
   const showName = opts.showName ?? true;
   const showUrl = opts.showUrl ?? true;
   const showDescription = opts.showDescription ?? true;
+  const isNameOnly = showName && !showUrl && !showDescription;
 
   const hasLinks = links.length > 0;
 
@@ -36,7 +37,7 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
 
   return (
     <div
-      className="flex h-full w-full flex-col gap-0 overflow-auto p-3"
+      className={`flex h-full w-full flex-col gap-0 overflow-auto ${isNameOnly ? 'p-0' : 'p-3'}`}
       data-widget-type="web-link"
     >
       {links.map((link, index) => (
@@ -49,6 +50,7 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
               showName={showName}
               showUrl={showUrl}
               showDescription={showDescription}
+              compact={isNameOnly}
             />
           ) : (
             <LinkItemCard
@@ -58,6 +60,7 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
               showName={showName}
               showUrl={showUrl}
               showDescription={showDescription}
+              compact={isNameOnly}
             />
           )}
           {index < links.length - 1 && (
@@ -76,6 +79,7 @@ function LinkHealthWrapper({
   showName,
   showUrl,
   showDescription,
+  compact,
 }: {
   link: LinkItem;
   interval: number;
@@ -83,6 +87,7 @@ function LinkHealthWrapper({
   showName: boolean;
   showUrl: boolean;
   showDescription: boolean;
+  compact?: boolean;
 }) {
   const { data: result } = useQuery({
     queryKey: ['link-health', link.url],
@@ -100,6 +105,7 @@ function LinkHealthWrapper({
       showName={showName}
       showUrl={showUrl}
       showDescription={showDescription}
+      compact={compact}
     />
   );
 }

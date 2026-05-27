@@ -10,9 +10,10 @@ interface LinkItemCardProps {
   showName?: boolean;
   showUrl?: boolean;
   showDescription?: boolean;
+  compact?: boolean;
 }
 
-export default function LinkItemCard({ link, reachable, onClick, showName = true, showUrl = true, showDescription = true }: LinkItemCardProps) {
+export default function LinkItemCard({ link, reachable, onClick, showName = true, showUrl = true, showDescription = true, compact }: LinkItemCardProps) {
   const IconComponent: LucideIcon =
     link.icon && (icons as Record<string, LucideIcon>)[link.icon]
       ? (icons as Record<string, LucideIcon>)[link.icon]
@@ -21,11 +22,12 @@ export default function LinkItemCard({ link, reachable, onClick, showName = true
   return (
     <button
       type="button"
-      className="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors"
+      className={`flex w-full items-center ${compact ? 'gap-2 p-1' : 'gap-3 rounded-lg p-3'} text-left transition-colors`}
       style={{
         backgroundColor: 'transparent',
         cursor: 'pointer',
         border: 'none',
+        borderRadius: compact ? undefined : undefined,
       }}
       onClick={onClick}
       onMouseEnter={(e) => {
@@ -37,7 +39,7 @@ export default function LinkItemCard({ link, reachable, onClick, showName = true
     >
       <div className="flex-shrink-0">
         <IconComponent
-          className="h-7 w-7"
+          className={compact ? 'h-4 w-4' : 'h-7 w-7'}
           style={{ color: 'var(--accent-primary)' }}
         />
       </div>
@@ -46,15 +48,15 @@ export default function LinkItemCard({ link, reachable, onClick, showName = true
         {showName && (
           <div className="flex items-center gap-2">
             <span
-              className="truncate text-sm font-semibold"
+              className={`truncate ${compact ? 'text-xs' : 'text-sm font-semibold'}`}
               style={{ color: 'var(--text-primary)' }}
             >
               {link.name}
             </span>
-            <HealthIndicator reachable={reachable} />
+            {!compact && <HealthIndicator reachable={reachable} />}
           </div>
         )}
-        {showDescription && link.description && (
+        {!compact && showDescription && link.description && (
           <p
             className="mt-0.5 truncate text-xs"
             style={{ color: 'var(--text-secondary)' }}
@@ -62,7 +64,7 @@ export default function LinkItemCard({ link, reachable, onClick, showName = true
             {link.description}
           </p>
         )}
-        {showUrl && (
+        {!compact && showUrl && (
           <span
             className="mt-0.5 block truncate text-xs"
             style={{ color: 'var(--text-muted)' }}
