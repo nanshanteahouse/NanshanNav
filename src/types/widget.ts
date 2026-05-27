@@ -10,7 +10,8 @@ export const WIDGET_TYPES = [
   'pve-status',
   'search-box',
   'clock',
-] as const;
+  'image',
+];
 
 export type WidgetType = (typeof WIDGET_TYPES)[number];
 
@@ -134,16 +135,8 @@ export interface SearchBoxOptions {
   ctrlKEnabled: boolean; // enable Ctrl+K hotkey
 }
 
-// Web Page
-export type WebPageDisplayMode = 'iframe' | 'image' | 'auto';
-export type WebPageImageSize = 'original' | 'contain';
-export type WebPageImageAlign = 'center' | 'top-left';
-
 export interface WebPageOptions {
   url: string;
-  displayMode: WebPageDisplayMode;
-  imageSize: WebPageImageSize;
-  imageAlign: WebPageImageAlign;
 }
 
 // Clock
@@ -154,4 +147,28 @@ export interface ClockOptions {
   showDate: boolean;
   dateFormat: string; // e.g., 'YYYY-MM-DD dddd'
   is24Hour: boolean;
+}
+
+// ── Image ──
+export type ImageScaleMode = 'contain' | 'cover' | 'fill' | 'original';
+export type ImageAlignX = 'left' | 'center' | 'right';
+export type ImageAlignY = 'top' | 'center' | 'bottom';
+export type ImageSourceType = 'url' | 'upload';
+export type ImageClickAction = 'none' | 'preview' | 'link';
+
+export interface ImageOptions {
+  sourceType: ImageSourceType;
+  url: string;
+  imageData?: string;
+  imageStoreKey?: string;
+  alt: string;
+  scaleMode: ImageScaleMode;
+  alignX: ImageAlignX;
+  alignY: ImageAlignY;
+  caption?: string;
+  borderRadius: number;
+  showShadow: boolean;
+  onClick: ImageClickAction;
+  linkUrl?: string;
+  openInNewTab: boolean;
 }

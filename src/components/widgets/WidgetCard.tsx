@@ -7,7 +7,7 @@ import { WidgetSkeleton } from '@/components/widgets/WidgetSkeleton';
 import { loadWidgetComponent } from '@/registry/loaders';
 import { useDashboardStore } from '@/store/index';
 
-const WIDGET_TYPE_VALUES: WidgetType[] = ['title-header', 'markdown-text', 'web-link', 'web-page', 'pve-status', 'search-box', 'clock'];
+const WIDGET_TYPE_VALUES: WidgetType[] = ['title-header', 'markdown-text', 'web-link', 'web-page', 'pve-status', 'search-box', 'clock', 'image'];
 
 const widgetComponentCache: Record<string, React.LazyExoticComponent<React.ComponentType<Record<string, unknown>>>> = Object.fromEntries(
   WIDGET_TYPE_VALUES.map((type) => [

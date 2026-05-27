@@ -55,4 +55,5 @@ export const DEFAULT_WIDGET_SIZE: Record<WidgetType, { w: number; h: number }> =
   'pve-status': { w: 4, h: 5 },
   'search-box': { w: 4, h: 2 },
   'clock': { w: 4, h: 4 },
+  'image': { w: 4, h: 4 },
 };

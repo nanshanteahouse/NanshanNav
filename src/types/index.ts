@@ -18,6 +18,13 @@ export type {
   PveStatusOptions,
   SearchBoxOptions,
   ClockOptions,
+  ImageOptions,
+  ImageScaleMode,
+  ImageAlignX,
+  ImageAlignY,
+  ImageSourceType,
+  ImageClickAction,
+
 } from './widget.ts';
 
 export { WIDGET_TYPES } from './widget.ts';
