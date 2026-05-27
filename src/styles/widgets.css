@@ -60,13 +60,10 @@
 .widget-body {
   flex: 1;
   overflow: auto;
-  padding: 16px;
+  padding: 0;
 }
 
 /* In view mode, hide the header */
-.widget-shell:not(:has(.drag-handle)) .widget-body {
-  padding: 16px;
-}
 
 /* Grid Lines */
 .grid-lines-visible .react-grid-item {

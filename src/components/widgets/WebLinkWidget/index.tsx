@@ -33,7 +33,7 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
 
   return (
     <div
-      className="flex h-full w-full flex-col gap-0 overflow-auto"
+      className="flex h-full w-full flex-col gap-0 overflow-auto p-3"
       data-widget-type="web-link"
     >
       {links.map((link, index) => (
