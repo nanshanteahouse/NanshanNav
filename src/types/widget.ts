@@ -137,11 +137,13 @@ export interface SearchBoxOptions {
 // Web Page
 export type WebPageDisplayMode = 'iframe' | 'image' | 'auto';
 export type WebPageImageSize = 'original' | 'contain';
+export type WebPageImageAlign = 'center' | 'top-left';
 
 export interface WebPageOptions {
   url: string;
   displayMode: WebPageDisplayMode;
   imageSize: WebPageImageSize;
+  imageAlign: WebPageImageAlign;
 }
 
 // Clock

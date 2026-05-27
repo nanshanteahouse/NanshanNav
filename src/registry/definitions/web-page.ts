@@ -10,6 +10,7 @@ export const webPageDefinition: WidgetDefinition<'web-page'> = {
     url: '',
     displayMode: 'auto',
     imageSize: 'contain',
+    imageAlign: 'center',
   },
   componentLoader: () => import('@/components/widgets/WebPageWidget'),
   settingsLoader: () => import('@/components/widgets/WebPageWidget/Settings'),

@@ -31,7 +31,10 @@ export default function WebPageWidget({ widgetId: _widgetId, options, isEditMode
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden" data-widget-type="web-page">
+    <div
+      className={`relative h-full w-full overflow-hidden ${displayMode === 'image' && opts.imageAlign === 'center' && opts.imageSize === 'original' ? 'flex items-center justify-center' : ''}`}
+      data-widget-type="web-page"
+    >
       {!isEditMode && (
         <a
           href={url}
@@ -53,7 +56,11 @@ export default function WebPageWidget({ widgetId: _widgetId, options, isEditMode
         <img
           src={url}
           alt="Web page widget"
-          className={opts.imageSize === 'original' ? 'max-w-full max-h-full p-2' : 'h-full w-full object-contain p-2'}
+          className={
+            opts.imageSize === 'original'
+              ? 'max-w-full max-h-full p-2'
+              : 'h-full w-full object-contain p-2'
+          }
           onError={(e) => {
             const target = e.currentTarget;
             target.style.display = 'none';
