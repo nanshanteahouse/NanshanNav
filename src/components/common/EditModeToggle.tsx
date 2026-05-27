@@ -10,6 +10,13 @@ export function EditModeToggle() {
   const handleToggle = () => {
     toggleEditMode();
     setSidebarOpen(!editMode);
+
+    // Sync URL with edit mode so NGINX can protect /admin
+    if (editMode) {
+      window.history.pushState(null, '', '/');
+    } else {
+      window.history.pushState(null, '', '/admin');
+    }
   };
 
   if (editMode) {
