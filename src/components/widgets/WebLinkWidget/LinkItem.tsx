@@ -39,7 +39,7 @@ export default function LinkItemCard({ link, reachable, onClick, showName = true
     >
       <div className="flex-shrink-0">
         <IconComponent
-          className={compact ? 'h-4 w-4' : 'h-7 w-7'}
+          className={compact ? 'h-5 w-5' : 'h-7 w-7'}
           style={{ color: 'var(--accent-primary)' }}
         />
       </div>
@@ -48,7 +48,7 @@ export default function LinkItemCard({ link, reachable, onClick, showName = true
         {showName && (
           <div className="flex items-center gap-2">
             <span
-              className={`truncate ${compact ? 'text-xs' : 'text-sm font-semibold'}`}
+              className="truncate text-sm font-semibold"
               style={{ color: 'var(--text-primary)' }}
             >
               {link.name}
