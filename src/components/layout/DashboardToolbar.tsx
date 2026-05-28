@@ -3,10 +3,13 @@ import { EditModeToggle } from '@/components/common/EditModeToggle';
 import { CellSizeSlider } from '@/components/common/CellSizeSlider';
 import { GridLinesToggle } from '@/components/common/GridLinesToggle';
 import { ExportImportButtons } from '@/components/common/ExportImportButtons';
+import { Input } from '@/components/ui/input';
 import { useDashboardStore } from '@/store/index';
 
 export function DashboardToolbar() {
   const dashboardTitle = useDashboardStore((s) => s.settings.dashboardTitle);
+  const editMode = useDashboardStore((s) => s.editMode);
+  const updateSettings = useDashboardStore((s) => s.updateSettings);
 
   return (
     <header
@@ -15,9 +18,17 @@ export function DashboardToolbar() {
       aria-label="Dashboard toolbar"
     >
       <div className="flex items-center gap-3">
-        <h1 className="text-xl font-semibold text-[var(--text-primary)] tracking-tight">
-          {dashboardTitle}
-        </h1>
+        {editMode ? (
+          <Input
+            value={dashboardTitle}
+            onChange={(e) => updateSettings({ dashboardTitle: e.target.value })}
+            className="min-w-0 text-xl font-semibold border-0 bg-transparent px-0 py-0 h-auto text-[var(--text-primary)]"
+          />
+        ) : (
+          <h1 className="text-xl font-semibold text-[var(--text-primary)] tracking-tight">
+            {dashboardTitle}
+          </h1>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <GridLinesToggle />

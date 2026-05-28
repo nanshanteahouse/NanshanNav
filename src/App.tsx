@@ -6,10 +6,15 @@ import { useAutoEditMode } from './hooks/useAutoEditMode'
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
   const darkMode = useDashboardStore(s => s.settings.darkMode)
+  const dashboardTitle = useDashboardStore(s => s.settings.dashboardTitle)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')
   }, [darkMode])
+
+  useEffect(() => {
+    document.title = dashboardTitle
+  }, [dashboardTitle])
 
   return <>{children}</>
 }
