@@ -1,11 +1,13 @@
 import { Pencil, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDashboardStore } from '@/store/index';
+import { useTranslation } from '@/i18n';
 
 export function EditModeToggle() {
   const editMode = useDashboardStore((s) => s.editMode);
   const toggleEditMode = useDashboardStore((s) => s.toggleEditMode);
   const setSidebarOpen = useDashboardStore((s) => s.setSidebarOpen);
+  const { t } = useTranslation();
 
   const handleToggle = () => {
     toggleEditMode();
@@ -24,11 +26,11 @@ export function EditModeToggle() {
       <Button
         variant="default"
         size="sm"
-        aria-label="Save and exit edit mode"
+        aria-label={t('toolbar.exitEditMode')}
         onClick={handleToggle}
       >
         <Save className="h-4 w-4" />
-        Save & Exit
+        {t('toolbar.saveExit')}
       </Button>
     );
   }
@@ -37,11 +39,11 @@ export function EditModeToggle() {
     <Button
       variant="outline"
       size="sm"
-      aria-label="Enter edit mode"
+      aria-label={t('toolbar.enterEditMode')}
       onClick={handleToggle}
     >
       <Pencil className="h-4 w-4" />
-      Edit
+      {t('toolbar.editBtn')}
     </Button>
   );
 }

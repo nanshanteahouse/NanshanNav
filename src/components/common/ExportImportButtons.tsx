@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { Download, Upload } from 'lucide-react';
 import { useDashboardStore } from '@/store/index';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n';
 
 export function ExportImportButtons() {
   const editMode = useDashboardStore((s) => s.editMode);
@@ -12,6 +13,7 @@ export function ExportImportButtons() {
   const setLayouts = useDashboardStore((s) => s.setLayouts);
   const setWidgets = useDashboardStore((s) => s.setWidgets);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   const handleExport = useCallback(() => {
     const config = {
@@ -45,7 +47,7 @@ export function ExportImportButtons() {
           if (config.layouts) setLayouts(config.layouts);
           if (config.widgets) setWidgets(config.widgets);
         } catch {
-          alert('Failed to parse config file. Please check the file format.');
+          alert(t('toolbar.importError'));
         }
       };
       reader.readAsText(file);
@@ -54,7 +56,7 @@ export function ExportImportButtons() {
         fileInputRef.current.value = '';
       }
     },
-    [setSettings, setLayouts, setWidgets],
+    [setSettings, setLayouts, setWidgets, t],
   );
 
   if (!editMode) return null;
@@ -64,8 +66,8 @@ export function ExportImportButtons() {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Export dashboard config"
-        title="Export dashboard config"
+        aria-label={t('toolbar.exportConfig')}
+        title={t('toolbar.exportConfig')}
         onClick={handleExport}
       >
         <Download className="h-4 w-4" />
@@ -73,8 +75,8 @@ export function ExportImportButtons() {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Import dashboard config"
-        title="Import dashboard config"
+        aria-label={t('toolbar.importConfig')}
+        title={t('toolbar.importConfig')}
         onClick={() => fileInputRef.current?.click()}
       >
         <Upload className="h-4 w-4" />
@@ -84,7 +86,7 @@ export function ExportImportButtons() {
         type="file"
         accept=".json"
         className="hidden"
-        aria-label="Import dashboard config file"
+        aria-label={t('toolbar.importConfig')}
         onChange={handleImport}
       />
     </>
