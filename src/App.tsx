@@ -3,6 +3,7 @@ import { useDashboardStore } from './store'
 import { AppLayout } from './components/layout/AppLayout'
 import { useKeyboardShortcut } from './hooks/useKeyboardShortcut'
 import { useAutoEditMode } from './hooks/useAutoEditMode'
+import { I18nProvider } from './i18n'
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
   const darkMode = useDashboardStore(s => s.settings.darkMode)
@@ -25,7 +26,9 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <AppLayout />
+      <I18nProvider>
+        <AppLayout />
+      </I18nProvider>
     </ThemeProvider>
   )
 }
