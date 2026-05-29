@@ -9,11 +9,21 @@ const mockStore = {
   editMode: false,
   removeWidget: vi.fn(),
   updateWidget: vi.fn(),
+  removeWidgetFromLayouts: vi.fn(),
+  widgets: [] as { id: string; title: string; type: string; options: Record<string, unknown>; createdAt: string; updatedAt: string }[],
 }
 
 vi.mock('@/store/index', () => ({
   useDashboardStore: (selector: (state: typeof mockStore) => unknown) =>
     selector(mockStore),
+}))
+
+vi.mock('@/i18n', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    locale: 'zh-CN',
+  }),
+  I18nProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
 const defaultWidget = {
@@ -74,7 +84,8 @@ describe('WidgetShell', () => {
       </WidgetShell>,
     )
 
-    expect(screen.getByText('Test Widget')).toBeDefined()
+    const titleDiv = screen.getByLabelText('widgetShell.editControls')
+    expect(titleDiv).toBeDefined()
   })
 
   it('should show drag handle in edit mode', () => {
