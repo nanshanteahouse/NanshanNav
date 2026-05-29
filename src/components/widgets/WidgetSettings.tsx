@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/modal';
 import { registry } from '@/registry';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n';
 
 interface WidgetSettingsProps {
   widgetId: string;
@@ -27,6 +28,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
   const updateWidget = useDashboardStore((s) => s.updateWidget);
   const [SettingsComponent, setSettingsComponent] = useState<SettingsComponentType | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!open || !widget) {
@@ -37,7 +39,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
     if (!def?.settingsLoader) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSettingsComponent(null);
-      setLoadError('No settings available for this widget type.');
+      setLoadError(t('settings.noSettings'));
       return;
     }
 
@@ -53,7 +55,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load settings';
+          const message = err instanceof Error ? err.message : t('common.error');
           setLoadError(message);
         }
       });
@@ -61,7 +63,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
     return () => {
       cancelled = true;
     };
-  }, [open, widget]);
+  }, [open, widget, t]);
 
   const handleDelete = useCallback(() => {
     removeWidget(widgetId);
@@ -72,11 +74,11 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
   const displayTitle = widget?.title || (widget ? registry[widget.type]?.displayName ?? 'Widget' : 'Widget');
 
   return (
-    <Modal open={open} onClose={onClose} title={`Configure ${displayTitle}`}>
+    <Modal open={open} onClose={onClose} title={t('settings.configure', { title: displayTitle })}>
       <div className="flex flex-col gap-5">
         <div>
           <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-            Widget Title
+            {t('settings.widgetTitle')}
           </label>
           <input
             type="text"
@@ -88,7 +90,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
               backgroundColor: 'var(--bg-input)',
               color: 'var(--text-primary)',
             }}
-            placeholder={displayTitle}
+            placeholder={t('settings.widgetTitlePlaceholder')}
           />
         </div>
 
@@ -114,7 +116,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
                     borderTopColor: 'var(--accent-primary)',
                   }}
                 />
-                <span className="text-sm">Loading settings...</span>
+                <span className="text-sm">{t('settings.loading')}</span>
               </div>
             </div>
           )}
@@ -122,7 +124,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
 
         <div className="border-t pt-5" style={{ borderColor: 'var(--border-default)' }}>
           <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
-            Type: {widget?.type} &middot; ID: {widgetId}
+            {t('settings.typeAndId', { type: widget?.type ?? 'unknown', id: widgetId })}
           </p>
           <Button
             variant="ghost"
@@ -132,7 +134,7 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
             style={{ color: 'var(--status-offline)' }}
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Delete Widget
+            {t('settings.deleteWidget')}
           </Button>
         </div>
       </div>

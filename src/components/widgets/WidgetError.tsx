@@ -1,6 +1,7 @@
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDashboardStore } from '@/store/index';
+import { useTranslation } from '@/i18n';
 
 function cn(...classes: (string | undefined | false | null)[]): string {
   return classes.filter(Boolean).join(' ');
@@ -13,6 +14,7 @@ export interface WidgetErrorProps {
 export function WidgetError({ widgetId }: WidgetErrorProps) {
   const removeWidget = useDashboardStore((s) => s.removeWidget);
   const widget = useDashboardStore((s) => s.widgets.find((w) => w.id === widgetId));
+  const { t } = useTranslation();
 
   const handleRetry = () => {
     window.location.reload();
@@ -31,7 +33,7 @@ export function WidgetError({ widgetId }: WidgetErrorProps) {
     >
       <AlertTriangle className="h-8 w-8 text-[var(--status-warning)]" />
       <div className="text-center">
-        <p className="text-sm font-medium text-[var(--text-primary)]">Widget Error</p>
+        <p className="text-sm font-medium text-[var(--text-primary)]">{t('error.title')}</p>
         <p className="text-xs text-[var(--text-muted)] mt-1">
           {widget?.title ?? widgetId}
         </p>
@@ -39,10 +41,10 @@ export function WidgetError({ widgetId }: WidgetErrorProps) {
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={handleRetry}>
           <RefreshCw className="h-3.5 w-3.5" />
-          Retry
+          {t('error.retry')}
         </Button>
         <Button variant="ghost" size="sm" onClick={handleRemove}>
-          Remove
+          {t('error.remove')}
         </Button>
       </div>
     </div>
