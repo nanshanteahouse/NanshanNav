@@ -10,6 +10,7 @@ import type { Breakpoint } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { getWidgetDefinition } from '@/registry/index';
 import type { LayoutItem } from '@/types/layout';
+import { useTranslation } from '@/i18n';
 
 const MARGIN_X = 12;
 const MARGIN_Y = 12;
@@ -36,6 +37,7 @@ function safeDiv(a: number, b: number): number {
 export function DashboardCanvas() {
   const { width, containerRef, mounted } = useContainerWidth();
   const dropPositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const { t } = useTranslation();
 
   const widgets = useDashboardStore((s) => s.widgets);
   const editMode = useDashboardStore((s) => s.editMode);
@@ -179,21 +181,21 @@ export function DashboardCanvas() {
         <div className="text-center space-y-4 max-w-sm">
           <div className="text-5xl" aria-hidden="true">🏠</div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-            Welcome to NanshanNav
+            {t('dashboard.emptyTitle')}
           </h2>
           <p className="text-sm text-[var(--text-secondary)]">
-            Your dashboard is empty. Click <strong>Edit</strong> to start adding widgets.
+            {t('dashboard.emptyDescription')}
           </p>
           <Button
             variant="default"
             size="default"
-            aria-label="Start editing dashboard"
+            aria-label={t('dashboard.startEditing')}
             onClick={() => {
               setEditMode(true);
               setSidebarOpen(true);
             }}
           >
-            Start Editing
+            {t('dashboard.startEditing')}
           </Button>
         </div>
       </div>
