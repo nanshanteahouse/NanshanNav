@@ -4,6 +4,7 @@ import type { WidgetComponentProps, SearchBoxOptions } from '@/types/widget.ts';
 import { useLocalSearch } from './useLocalSearch.ts';
 import SearchSuggestions from './SearchSuggestions.tsx';
 import { Search, Globe } from 'lucide-react';
+import { useTranslation } from '@/i18n';
 
 const ENGINE_URLS: Record<string, string> = {
   google: 'https://www.google.com/search?q={query}',
@@ -20,14 +21,6 @@ const ENGINE_NAMES: Record<string, string> = {
   custom: 'C',
 };
 
-const ENGINE_LABELS: Record<string, string> = {
-  google: 'Google',
-  baidu: 'Baidu',
-  bing: 'Bing',
-  duckduckgo: 'DuckDuckGo',
-  custom: 'Custom',
-};
-
 export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
   const opts = options as unknown as SearchBoxOptions;
   const [query, setQuery] = useState('');
@@ -38,6 +31,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
   const [suggestionsRect, setSuggestionsRect] = useState<DOMRect | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const engineBtnRef = useRef<HTMLButtonElement>(null);
+  const { t } = useTranslation();
 
   const suggestions = useLocalSearch(query);
   const engines = engine === 'custom' && opts.customEngineUrl
@@ -135,7 +129,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
               fontWeight: 700,
             }}
             onClick={handleToggleEngineMenu}
-            aria-label="Select search engine"
+            aria-label={t('widget.searchBox.defaultEngine')}
           >
             {ENGINE_NAMES[engine] || <Globe className="h-3.5 w-3.5" />}
           </button>
@@ -152,7 +146,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
               borderLeft: 'none',
               borderRight: 'none',
             }}
-            placeholder={opts.placeholder || 'Search...'}
+            placeholder={opts.placeholder || t('widget.searchBox.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -186,7 +180,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
               color: 'var(--text-muted)',
             }}
             onClick={handleSearch}
-            aria-label="Search"
+            aria-label={t('common.search')}
           >
             <Search className="h-5 w-5" />
           </button>
@@ -225,7 +219,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
                 }}
                 onClick={() => handleEngineSelect(key)}
               >
-                {ENGINE_LABELS[key] || 'Custom'}
+                {t(`widget.searchBox.engines.${key}`)}
               </button>
             ))}
           </div>,
