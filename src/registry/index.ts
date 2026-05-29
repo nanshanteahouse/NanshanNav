@@ -29,10 +29,10 @@ export function getAllWidgetDefinitions() {
 
 export function getWidgetDefinitionsByGroup(): Record<string, WidgetType[]> {
   return {
-    'Content': ['title-header', 'markdown-text'],
-    'Navigation': ['web-link', 'web-page', 'search-box'],
-    'Media': ['image'],
-    'System': ['pve-status'],
-    'Utilities': ['clock'],
+    'content': ['title-header', 'markdown-text'],
+    'navigation': ['web-link', 'web-page', 'search-box'],
+    'media': ['image'],
+    'system': ['pve-status'],
+    'utilities': ['clock'],
   };
 }
