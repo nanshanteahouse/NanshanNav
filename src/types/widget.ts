@@ -37,8 +37,10 @@ export interface WidgetConfig {
 export interface WidgetDefinition<TKind extends WidgetType = WidgetType> {
   /** Unique widget type */
   kind: TKind;
-  /** Display name in widget palette */
+  /** Display name in widget palette (fallback when displayKey is not translated) */
   displayName: string;
+  /** i18n key for widget display name (takes precedence over displayName) */
+  displayKey?: string;
   /** Icon for palette and card header */
   icon: string;
   /** Default grid dimensions { w, h } */

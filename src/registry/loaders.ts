@@ -19,6 +19,10 @@ export function getWidgetDisplayName(type: WidgetType): string {
   return registry[type].displayName;
 }
 
+export function getWidgetDisplayKey(type: WidgetType): string | undefined {
+  return registry[type].displayKey;
+}
+
 export function getWidgetDefaultSize(type: WidgetType): { w: number; h: number } {
   return registry[type].defaultSize;
 }

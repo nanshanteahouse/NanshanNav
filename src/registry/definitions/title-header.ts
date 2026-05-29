@@ -3,6 +3,7 @@ import type { WidgetDefinition } from '@/types/widget.ts';
 export const titleHeaderDefinition: WidgetDefinition<'title-header'> = {
   kind: 'title-header',
   displayName: '标题',
+  displayKey: 'registry.widget.titleHeader',
   icon: 'Heading',
   defaultSize: { w: 4, h: 2 },
   minSize: { w: 2, h: 1 },

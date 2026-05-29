@@ -3,6 +3,7 @@ import type { WidgetDefinition } from '@/types/widget.ts';
 export const clockDefinition: WidgetDefinition<'clock'> = {
   kind: 'clock',
   displayName: '时钟',
+  displayKey: 'registry.widget.clock',
   icon: 'Clock',
   defaultSize: { w: 4, h: 4 },
   minSize: { w: 2, h: 2 },

@@ -3,6 +3,7 @@ import type { WidgetDefinition } from '@/types/widget.ts';
 export const imageDefinition: WidgetDefinition<'image'> = {
   kind: 'image',
   displayName: '图片',
+  displayKey: 'registry.widget.image',
   icon: 'Image',
   defaultSize: { w: 4, h: 4 },
   minSize: { w: 1, h: 1 },
