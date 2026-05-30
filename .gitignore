@@ -28,5 +28,6 @@ dist-ssr
 
 SPEC.md
 
-# PVE API token config
+# PVE API token config (encrypted)
 server/config/pve-tokens.json
+server/config/.pve-key
