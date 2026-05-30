@@ -2,22 +2,77 @@ import { Hono } from 'hono';
 import { readFile, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
+import { encryptToken, decryptToken, loadEncryptionKey, isEncryptedPayload } from '../lib/crypto.js';
+import type { EncryptedPayload } from '../lib/crypto.js';
 
 interface TokensConfig {
   default?: string;
   hosts?: Record<string, string>;
 }
 
+interface RawTokensConfig {
+  default?: string | EncryptedPayload;
+  hosts?: Record<string, string | EncryptedPayload>;
+}
+
 const TOKENS_PATH = path.resolve(process.cwd(), 'server/config/pve-tokens.json');
+
+function tryDecryptValue(value: unknown): string | null {
+  if (typeof value === 'string') return null; // old plaintext, skip
+  if (isEncryptedPayload(value)) {
+    try {
+      return decryptToken(value, loadEncryptionKey());
+    } catch {
+      return null; // tampered or wrong key
+    }
+  }
+  return null;
+}
 
 async function loadTokens(): Promise<TokensConfig | null> {
   if (!existsSync(TOKENS_PATH)) return null;
   try {
     const raw = await readFile(TOKENS_PATH, 'utf-8');
-    return JSON.parse(raw) as TokensConfig;
+    const parsed = JSON.parse(raw) as RawTokensConfig;
+    const result: TokensConfig = {};
+
+    if (parsed.default) {
+      const decrypted = tryDecryptValue(parsed.default);
+      if (decrypted !== null) result.default = decrypted;
+    }
+
+    if (parsed.hosts) {
+      result.hosts = {};
+      for (const [host, val] of Object.entries(parsed.hosts)) {
+        const decrypted = tryDecryptValue(val);
+        if (decrypted !== null) result.hosts[host] = decrypted;
+      }
+    }
+
+    return result;
   } catch {
     return null;
   }
+}
+
+async function saveTokens(tokens: TokensConfig): Promise<void> {
+  const key = loadEncryptionKey();
+  const raw: RawTokensConfig = {};
+
+  if (tokens.default) {
+    raw.default = encryptToken(tokens.default, key);
+  }
+
+  if (tokens.hosts && Object.keys(tokens.hosts).length > 0) {
+    raw.hosts = {};
+    for (const [host, token] of Object.entries(tokens.hosts)) {
+      raw.hosts[host] = encryptToken(token, key);
+    }
+  }
+
+  const tmp = TOKENS_PATH + '.tmp';
+  await writeFile(tmp, JSON.stringify(raw, null, 2), 'utf-8');
+  await rename(tmp, TOKENS_PATH);
 }
 
 function getToken(tokens: TokensConfig | null, host: string): string | undefined {
@@ -80,10 +135,7 @@ pveProxy.put('/tokens', async (c) => {
     tokens.hosts[host] = token;
   }
 
-  // Atomic write: tmp → rename
-  const tmp = TOKENS_PATH + '.tmp';
-  await writeFile(tmp, JSON.stringify(tokens, null, 2), 'utf-8');
-  await rename(tmp, TOKENS_PATH);
+  await saveTokens(tokens);
 
   return c.json({ masked: maskToken(token) });
 });
@@ -98,9 +150,7 @@ pveProxy.delete('/tokens', async (c) => {
   const tokens = await loadTokens();
   if (tokens?.hosts?.[host]) {
     delete tokens.hosts[host];
-    const tmp = TOKENS_PATH + '.tmp';
-    await writeFile(tmp, JSON.stringify(tokens, null, 2), 'utf-8');
-    await rename(tmp, TOKENS_PATH);
+    await saveTokens(tokens);
   }
 
   return c.json({ success: true });
