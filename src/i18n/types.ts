@@ -207,5 +207,6 @@ export interface TranslationSchema {
     editBtn: string;
     rowHeight: string;
     rowLabel: string;
+    toggleWidgetPanel: string;
   };
 }

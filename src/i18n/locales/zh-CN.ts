@@ -209,6 +209,7 @@ const zhCN: TranslationSchema = {
     editBtn: '编辑',
     rowHeight: '网格行高（列宽自动根据容器宽度计算）',
     rowLabel: '行高: {px}px',
+    toggleWidgetPanel: '切换组件面板',
   },
 };
 

@@ -209,6 +209,7 @@ const en: TranslationSchema = {
     editBtn: 'Edit',
     rowHeight: 'Row height (column width is auto-calculated from container width)',
     rowLabel: 'Row: {px}px',
+    toggleWidgetPanel: 'Toggle widget panel',
   },
 };
 
