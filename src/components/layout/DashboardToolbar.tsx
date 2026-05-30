@@ -1,3 +1,4 @@
+import { PanelLeft, PanelLeftClose } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { EditModeToggle } from '@/components/common/EditModeToggle';
 import { CellSizeSlider } from '@/components/common/CellSizeSlider';
@@ -5,13 +6,16 @@ import { GridLinesToggle } from '@/components/common/GridLinesToggle';
 import { ExportImportButtons } from '@/components/common/ExportImportButtons';
 import { LanguageSelect } from '@/components/common/LanguageSelect';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useDashboardStore } from '@/store/index';
 import { useTranslation } from '@/i18n';
 
 export function DashboardToolbar() {
   const dashboardTitle = useDashboardStore((s) => s.settings.dashboardTitle);
   const editMode = useDashboardStore((s) => s.editMode);
+  const sidebarOpen = useDashboardStore((s) => s.sidebarOpen);
   const updateSettings = useDashboardStore((s) => s.updateSettings);
+  const toggleSidebar = useDashboardStore((s) => s.toggleSidebar);
   const { t } = useTranslation();
 
   return (
@@ -34,6 +38,16 @@ export function DashboardToolbar() {
         )}
       </div>
       <div className="flex items-center gap-2">
+        {editMode && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            aria-label={t('toolbar.toggleWidgetPanel')}
+          >
+            {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+          </Button>
+        )}
         <GridLinesToggle />
         <ExportImportButtons />
         <CellSizeSlider />
