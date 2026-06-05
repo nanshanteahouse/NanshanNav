@@ -2,6 +2,22 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { WidgetComponentProps, MarkdownTextOptions } from '@/types/widget.ts';
 
+/**
+ * Sanitizes URLs to prevent XSS via javascript:, vbscript:, and data: schemes.
+ * Returns empty string for dangerous URLs, original URL otherwise.
+ */
+function sanitizeUrl(url: string): string {
+  const trimmed = url.trim().toLowerCase();
+  if (
+    trimmed.startsWith('javascript:') ||
+    trimmed.startsWith('vbscript:') ||
+    trimmed.startsWith('data:')
+  ) {
+    return '';
+  }
+  return url;
+}
+
 export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
   const opts = options as unknown as MarkdownTextOptions;
   const hasContent = opts.content && opts.content.trim().length > 0;
@@ -34,7 +50,10 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
           lineHeight: '1.7',
         }}
       >
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          urlTransform={sanitizeUrl}
+        >
           {opts.content}
         </ReactMarkdown>
       </div>

@@ -26,6 +26,9 @@ dist-ssr
 # Sisyphus plan files
 .sisyphus/
 
+# OpenCode working files
+.omo/
+
 SPEC.md
 
 # PVE API token config (encrypted)

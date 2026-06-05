@@ -4,6 +4,22 @@ import remarkGfm from 'remark-gfm';
 import type { WidgetSettingsProps, MarkdownTextOptions } from '@/types/widget.ts';
 import { Trash2 } from 'lucide-react';
 
+/**
+ * Sanitizes URLs to prevent XSS via javascript:, vbscript:, and data: schemes.
+ * Returns empty string for dangerous URLs, original URL otherwise.
+ */
+function sanitizeUrl(url: string): string {
+  const trimmed = url.trim().toLowerCase();
+  if (
+    trimmed.startsWith('javascript:') ||
+    trimmed.startsWith('vbscript:') ||
+    trimmed.startsWith('data:')
+  ) {
+    return '';
+  }
+  return url;
+}
+
 export default function MarkdownTextSettings({ widgetId: _widgetId, options, onChange, onDelete }: WidgetSettingsProps) {
   const opts = options as unknown as MarkdownTextOptions;
   const [content, setContent] = useState(() => opts.content);
@@ -50,7 +66,10 @@ export default function MarkdownTextSettings({ widgetId: _widgetId, options, onC
           }}
         >
           {content.trim() ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              urlTransform={sanitizeUrl}
+            >
               {content}
             </ReactMarkdown>
           ) : (
