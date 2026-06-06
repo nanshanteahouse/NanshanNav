@@ -15,17 +15,18 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
+    port: parseInt(process.env.FRONTEND_PORT || '5173', 10),
     proxy: {
       '/api/upload': {
-        target: 'http://localhost:3001',
+        target: `http://localhost:${process.env.BACKEND_PORT || '3001'}`,
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:3001',
+        target: `http://localhost:${process.env.BACKEND_PORT || '3001'}`,
         changeOrigin: true,
       },
       '/api/pve': {
-        target: 'http://localhost:3001',
+        target: `http://localhost:${process.env.BACKEND_PORT || '3001'}`,
         changeOrigin: true,
       },
     },

@@ -1,0 +1,113 @@
+# =============================================================================
+# NanshanNav — Backend Service (systemd unit example)
+# =============================================================================
+#
+# This unit manages the NanshanNav backend (Hono/Node.js) as a systemd service.
+# It is intended for production deployment alongside Nginx (see
+# nginx.conf.example for the reverse proxy configuration).
+#
+# ── Quick Install ──
+#   1. Build the frontend:
+#        cd /path/to/NanshanNav
+#        npm run build
+#
+#   2. Copy & edit this file:
+#        sudo cp nanshan-nav-backend.service.example \
+#                 /etc/systemd/system/nanshan-nav-backend.service
+#        sudo systemctl daemon-reload
+#
+#   3. Enable & start:
+#        sudo systemctl enable --now nanshan-nav-backend
+#
+# ── Verify ──
+#   sudo journalctl -u nanshan-nav-backend -f
+#   curl http://localhost:3001/api/pve/nodes
+#
+# ── Environment Variables ──
+#   Set these in Environment= lines below, or in a separate EnvironmentFile.
+#
+#   Variable         Default        Description
+#   ───────────────────────────────────────────────────────
+#   PORT             3001           Backend server listen port
+#   UPLOAD_DIR       ./uploads      Uploaded files directory
+#   FRONTEND_PORT    5173           Vite dev frontend port (dev only)
+#   BACKEND_PORT     3001           Vite proxy target (used by start.sh)
+#   VITE_PVE_API_TOKEN  (required)  Proxmox VE API token
+#
+# ── Custom Port (outside the unit) ──
+#   sudo systemctl edit nanshan-nav-backend
+#   [Service]
+#   Environment=PORT=4000
+#
+# ── File locations ──
+#   WorkingDirectory: /var/www/nanshan-nav   (adjust to your deploy path)
+#   Upload directory: /var/www/nanshan-nav/uploads
+# =============================================================================
+
+[Unit]
+Description=NanshanNav Backend Server — Home Network Navigation Dashboard
+Documentation=https://github.com/your-org/NanshanNav
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# ── User ────────────────────────────────────────────────────────────────────
+# Create a dedicated system user for the service (recommended for security):
+#   sudo useradd -r -s /usr/sbin/nologin -d /var/www/nanshan-nav nanshan-nav
+User=nanshan-nav
+Group=nanshan-nav
+
+# ── Working Directory ───────────────────────────────────────────────────────
+# Deploy the built project to this path.  The Nginx root should match.
+WorkingDirectory=/var/www/nanshan-nav
+
+# ── Startup Command ────────────────────────────────────────────────────────
+# Uses tsx to run the TypeScript server directly (no compilation step needed).
+# For stricter production setups, compile the server first:
+#   npx tsc -p server/tsconfig.json
+#   node dist/server/index.js
+ExecStart=/usr/bin/npx tsx server/index.ts
+
+# ── Environment Variables ───────────────────────────────────────────────────
+# Change these to match your deployment.
+Environment=NODE_ENV=production
+Environment=PORT=3001
+Environment=UPLOAD_DIR=/var/www/nanshan-nav/uploads
+
+# For PVE integration, uncomment and set your token:
+# Environment=VITE_PVE_API_TOKEN=monitor@pve!dashboard=YOUR_SECRET
+
+# ── Node.js Options ─────────────────────────────────────────────────────────
+Environment=NODE_OPTIONS=--no-deprecation
+Environment=NODE_TLS_REJECT_UNAUTHORIZED=0
+
+# ── Resource Limits ─────────────────────────────────────────────────────────
+# Restart on crash (with backoff)
+Restart=on-failure
+RestartSec=5s
+
+# Limit open files (uploads may keep many descriptors)
+LimitNOFILE=65536
+
+# ── Hardening (security) ────────────────────────────────────────────────────
+# Lock down the service to reduce attack surface.
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+
+# ── Logging ─────────────────────────────────────────────────────────────────
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

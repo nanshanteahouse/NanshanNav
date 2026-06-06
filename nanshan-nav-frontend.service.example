@@ -1,0 +1,133 @@
+# =============================================================================
+# NanshanNav — Frontend Service (systemd unit example)
+# =============================================================================
+#
+# This unit serves the NanshanNav frontend SPA (built by Vite) as a systemd
+# service using Vite's built-in preview server.  Use this for:
+#   - Simple production/staging setups WITHOUT Nginx
+#   - Development environments that need auto-start
+#
+# ── For Production with Nginx ──
+#   If you already have Nginx serving the SPA static files (see
+#   nginx.conf.example), you do NOT need this service.  Instead, run the
+#   frontend build as a one-shot task (see "[Install]" section below for an
+#   alternative trigger).
+#
+# ── Quick Install ──
+#   1. Build the frontend:
+#        cd /path/to/NanshanNav
+#        npm run build
+#
+#   2. Copy & edit:
+#        sudo cp nanshan-nav-frontend.service.example \
+#                 /etc/systemd/system/nanshan-nav-frontend.service
+#        sudo systemctl daemon-reload
+#
+#   3. Enable & start:
+#        sudo systemctl enable --now nanshan-nav-frontend
+#
+# ── Custom Port (outside the unit) ──
+#   sudo systemctl edit nanshan-nav-frontend
+#   [Service]
+#   Environment=FRONTEND_PORT=8080
+#
+# ── Architecture ──
+#
+#   Option A: Nginx as frontend (recommended for production)
+#     Nginx (:80/:443) ──static──► dist/  (built SPA)
+#                    └──proxy──► Backend (:3001)
+#
+#   Option B: Vite preview as frontend (this service)
+#     Vite Preview (:FRONTEND_PORT) ──static──► dist/  (built SPA)
+#     Backend Service (:BACKEND_PORT)          ← API calls go here
+#
+#   In Option B, update vite.config.ts so the Vite dev proxy is NOT used
+#   (preview mode does NOT apply proxy rules).  The frontend should call
+#   the backend directly.  Uncomment the VITE_API_BASE env var below
+#   to set the backend URL.
+# =============================================================================
+
+[Unit]
+Description=NanshanNav Frontend Server — Vite Preview (SPA)
+Documentation=https://github.com/your-org/NanshanNav
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# ── User ────────────────────────────────────────────────────────────────────
+User=nanshan-nav
+Group=nanshan-nav
+
+# ── Working Directory ───────────────────────────────────────────────────────
+WorkingDirectory=/var/www/nanshan-nav
+
+# ── Startup Command ─────────────────────────────────────────────────────────
+# Use vite preview to serve the built SPA (dist/) on a configurable port.
+# Requires that npm run build has been run at least once.
+ExecStart=/usr/bin/npx vite preview --port ${FRONTEND_PORT} --host 0.0.0.0
+
+# ── Environment Variables ───────────────────────────────────────────────────
+Environment=NODE_ENV=production
+Environment=FRONTEND_PORT=4173
+
+# If preview mode needs a known backend URL, set it here so the SPA can
+# construct fetch URLs without depending on Vite proxy:
+# Environment=VITE_API_BASE=http://localhost:3001
+
+# ── Resource Limits ─────────────────────────────────────────────────────────
+Restart=on-failure
+RestartSec=5s
+
+# ── Build on restart (optional) ─────────────────────────────────────────────
+# Uncomment the line below to rebuild the SPA every time the service starts.
+# This ensures the served files are up-to-date after a git pull.
+# ExecStartPre=/usr/bin/npm run build
+
+# ── Hardening ───────────────────────────────────────────────────────────────
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target
+
+# =============================================================================
+# ── Alternative: Build Only (for setups where Nginx serves static files) ──
+# =============================================================================
+# If you use Nginx to serve the SPA (recommended for production), you don't
+# need to run vite preview as a service.  Instead, create a one-shot service
+# that just rebuilds the frontend, and a path-based timer that triggers it.
+#
+# Example build-only service:
+#
+#   # /etc/systemd/system/nanshan-nav-frontend-build.service
+#   [Unit]
+#   Description=Build NanshanNav Frontend
+#   After=network-online.target
+#
+#   [Service]
+#   Type=oneshot
+#   User=nanshan-nav
+#   Group=nanshan-nav
+#   WorkingDirectory=/var/www/nanshan-nav
+#   ExecStart=/usr/bin/npm run build
+#
+#   [Install]
+#   WantedBy=multi-user.target
+#
+# Then trigger it with a path-based timer:
+#
+#   # /etc/systemd/system/nanshan-nav-frontend-build.path
+#   [Unit]
+#   Description=Watch frontend source for changes
+#
+#   [Path]
+#   PathModified=/var/www/nanshan-nav/src
+#
+#   [Install]
+#   WantedBy=multi-user.target
