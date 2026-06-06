@@ -10,15 +10,18 @@ export function EditModeToggle() {
   const { t } = useTranslation();
 
   const handleToggle = () => {
-    toggleEditMode();
-    setSidebarOpen(!editMode);
-
-    // Sync URL with edit mode so NGINX can protect /admin
     if (editMode) {
+      // Exiting edit mode: back to homepage, no auth needed
+      toggleEditMode();
+      setSidebarOpen(false);
       window.history.pushState(null, '', '/');
-    } else {
-      window.history.pushState(null, '', '/admin');
+      return;
     }
+
+    // Entering edit mode: trigger Authelia auth via full page navigation
+    // pushState alone bypasses nginx's auth_request, causing /api/* calls to fail
+    sessionStorage.setItem('nanshan_edit_mode', '1');
+    window.location.assign('/admin');
   };
 
   if (editMode) {
