@@ -193,9 +193,20 @@ pveProxy.all('*', async (c) => {
 
     clearTimeout(timer);
 
-    const body = await response.json();
+    let body: unknown;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('json')) {
+      body = await response.json();
+    } else {
+      const text = await response.text();
+      body = { raw: text.substring(0, 500) };
+    }
+
     if (!response.ok) {
       console.error(`[PVE proxy] ${response.status} ${response.statusText}:`, JSON.stringify(body).slice(0, 300));
+      if (response.status === 401) {
+        return c.json({ error: 'PVE API authentication failed — check your token' }, 502);
+      }
     }
     return c.json(body, response.status as any);
   } catch (err: any) {
