@@ -27,6 +27,17 @@ export const useDashboardStore = create<DashboardState>()(
         layouts: state.layouts,
         widgets: state.widgets,
       }),
+      merge: (persisted: unknown, current: DashboardState) => {
+        const raw = persisted as Record<string, unknown>;
+        if (raw.settings && typeof raw.settings === 'object') {
+          const s = raw.settings as Record<string, unknown>;
+          if ('darkMode' in s && !('themeMode' in s)) {
+            s.themeMode = s.darkMode ? 'dark' : 'system';
+            delete s.darkMode;
+          }
+        }
+        return { ...current, ...raw } as DashboardState;
+      },
     },
   ),
 );

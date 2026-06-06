@@ -8,13 +8,23 @@
     <title>NanshanNav</title>
     <script>
       (function() {
-        var stored, parsed;
+        var stored, parsed, settings, themeMode;
         try {
           stored = localStorage.getItem('dashboard-storage');
           if (stored) {
             parsed = JSON.parse(stored);
-            if (parsed?.state?.settings?.darkMode) {
-              document.documentElement.setAttribute('data-theme', 'dark');
+            settings = parsed?.state?.settings;
+            if (settings) {
+              if (settings.themeMode) {
+                themeMode = settings.themeMode;
+              } else if ('darkMode' in settings) {
+                themeMode = settings.darkMode ? 'dark' : 'system';
+              }
+              if (themeMode === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+              } else if (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+              }
             }
           }
         } catch {}

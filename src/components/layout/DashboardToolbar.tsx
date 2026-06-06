@@ -1,10 +1,12 @@
-import { PanelLeft, PanelLeftClose } from 'lucide-react';
+import { useState } from 'react';
+import { PanelLeft, PanelLeftClose, Palette } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { EditModeToggle } from '@/components/common/EditModeToggle';
 import { CellSizeSlider } from '@/components/common/CellSizeSlider';
 import { GridLinesToggle } from '@/components/common/GridLinesToggle';
 import { ExportImportButtons } from '@/components/common/ExportImportButtons';
 import { LanguageSelect } from '@/components/common/LanguageSelect';
+import { ColorThemeEditor } from '@/components/common/ColorThemeEditor';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useDashboardStore } from '@/store/index';
@@ -17,6 +19,7 @@ export function DashboardToolbar() {
   const updateSettings = useDashboardStore((s) => s.updateSettings);
   const toggleSidebar = useDashboardStore((s) => s.toggleSidebar);
   const { t } = useTranslation();
+  const [colorEditorOpen, setColorEditorOpen] = useState(false);
 
   return (
     <header
@@ -52,9 +55,19 @@ export function DashboardToolbar() {
         <ExportImportButtons />
         <CellSizeSlider />
         <ThemeToggle />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setColorEditorOpen(true)}
+          aria-label={t('toolbar.colorPalette')}
+          title={t('toolbar.colorPalette')}
+        >
+          <Palette className="h-4 w-4" />
+        </Button>
         <LanguageSelect />
         <EditModeToggle />
       </div>
+      <ColorThemeEditor open={colorEditorOpen} onClose={() => setColorEditorOpen(false)} />
     </header>
   );
 }

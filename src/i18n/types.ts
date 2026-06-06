@@ -191,7 +191,6 @@ export interface TranslationSchema {
   toolbar: {
     cellSize: string;
     showGridLines: string;
-    darkMode: string;
     editMode: string;
     exportImport: string;
     showGrid: string;
@@ -201,6 +200,8 @@ export interface TranslationSchema {
     importError: string;
     switchToLight: string;
     switchToDark: string;
+    themeSystem: string;
+    colorPalette: string;
     enterEditMode: string;
     exitEditMode: string;
     saveExit: string;
@@ -208,5 +209,27 @@ export interface TranslationSchema {
     rowHeight: string;
     rowLabel: string;
     toggleWidgetPanel: string;
+  };
+  colorEditor: {
+    title: string;
+    lightTheme: string;
+    darkTheme: string;
+    resetDefault: string;
+    bgPrimary: string;
+    bgSecondary: string;
+    bgWidget: string;
+    bgWidgetHover: string;
+    bgInput: string;
+    textPrimary: string;
+    textSecondary: string;
+    textMuted: string;
+    textAccent: string;
+    borderDefault: string;
+    borderFocus: string;
+    statusOnline: string;
+    statusOffline: string;
+    statusWarning: string;
+    accentPrimary: string;
+    accentPrimaryHover: string;
   };
 }

@@ -6,6 +6,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import pveProxy from './routes/pve-proxy.js';
+import { getCachedFavicon, cacheFavicon } from './lib/favicon.js';
 
 const ALLOWED_TYPES = [
   'image/jpeg',
@@ -43,6 +44,63 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
 }
 
 app.route('/api/pve', pveProxy);
+
+// Favicon proxy with caching
+app.get('/api/favicon', async (c) => {
+  const url = c.req.query('url');
+  if (!url) return c.json({ error: 'Missing url' }, 400);
+
+  let host: string;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return c.json({ error: 'Only http/https URLs are allowed' }, 400);
+    }
+    host = parsed.host;
+  } catch {
+    return c.json({ error: 'Invalid URL' }, 400);
+  }
+
+  // Check cache
+  const cached = getCachedFavicon(host);
+  if (cached) {
+    return c.body(cached, 200, {
+      'Content-Type': 'image/x-icon',
+      'Cache-Control': 'public, max-age=86400',
+    });
+  }
+
+  // Proxy fetch
+  try {
+    const response = await fetch(`https://${host}/favicon.ico`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) {
+      // Try HTTP fallback
+      const httpResponse = await fetch(`http://${host}/favicon.ico`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!httpResponse.ok) {
+        return c.json({ error: 'Favicon not found' }, 404);
+      }
+      const buffer = Buffer.from(await httpResponse.arrayBuffer());
+      cacheFavicon(host, buffer);
+      return c.body(buffer, 200, {
+        'Content-Type': httpResponse.headers.get('content-type') || 'image/x-icon',
+        'Cache-Control': 'public, max-age=86400',
+      });
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    cacheFavicon(host, buffer);
+    return c.body(buffer, 200, {
+      'Content-Type': response.headers.get('content-type') || 'image/x-icon',
+      'Cache-Control': 'public, max-age=86400',
+    });
+  } catch (err) {
+    console.error('Favicon fetch error:', err);
+    return c.json({ error: 'Failed to fetch favicon' }, 502);
+  }
+});
 
 app.post('/api/upload', async (c) => {
   try {

@@ -97,12 +97,16 @@ export interface MarkdownTextOptions {
 }
 
 // Web Link
+export type IconSource = 'favicon' | 'lucide' | 'custom' | 'initial';
+
 export interface LinkItem {
   id: string;
   name: string;
   url: string;
   icon: string;
   description: string;
+  iconSource?: IconSource;
+  iconValue?: string | null;
 }
 
 export interface WebLinkOptions {

@@ -1,6 +1,5 @@
-import { icons, Globe } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import type { LinkItem } from '@/types/widget.ts';
+import { IconDisplay } from '@/components/common/IconDisplay';
 import HealthIndicator from './HealthIndicator.tsx';
 
 interface LinkItemCardProps {
@@ -14,11 +13,6 @@ interface LinkItemCardProps {
 }
 
 export default function LinkItemCard({ link, reachable, onClick, showName = true, showUrl = true, showDescription = true, compact }: LinkItemCardProps) {
-  const IconComponent: LucideIcon =
-    link.icon && (icons as Record<string, LucideIcon>)[link.icon]
-      ? (icons as Record<string, LucideIcon>)[link.icon]
-      : Globe;
-
   return (
     <button
       type="button"
@@ -38,9 +32,12 @@ export default function LinkItemCard({ link, reachable, onClick, showName = true
       }}
     >
       <div className="flex-shrink-0">
-        <IconComponent
-          className={compact ? 'h-5 w-5' : 'h-7 w-7'}
-          style={{ color: 'var(--accent-primary)' }}
+        <IconDisplay
+          iconSource={link.iconSource || 'lucide'}
+          iconValue={link.icon}
+          url={link.url}
+          name={link.name}
+          size={compact ? 'sm' : 'lg'}
         />
       </div>
 

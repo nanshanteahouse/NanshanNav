@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { WidgetSettingsProps, WebLinkOptions, LinkItem } from '@/types/widget.ts';
+import type { WidgetSettingsProps, WebLinkOptions, LinkItem, IconSource } from '@/types/widget.ts';
 import { generateId } from '@/lib/utils/generate-id.ts';
 import { IconPicker } from '@/components/ui/icon-picker';
 import { Trash2, Plus } from 'lucide-react';
@@ -192,9 +192,67 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
                 />
                 <IconPicker
                   value={link.icon}
-                  onChange={(iconName) => updateLink(index, { icon: iconName })}
+                  onChange={(iconName) => updateLink(index, { icon: iconName, iconValue: iconName })}
                   variant="popover"
                 />
+                {/* Icon Source Selector */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Icon Source</span>
+                  <select
+                    className="rounded border px-3 py-2 text-sm"
+                    style={{
+                      backgroundColor: 'var(--bg-input)',
+                      borderColor: 'var(--border-default)',
+                      color: 'var(--text-primary)',
+                    }}
+                    value={link.iconSource || 'lucide'}
+                    onChange={(e) => updateLink(index, { iconSource: e.target.value as IconSource })}
+                  >
+                    <option value="favicon">Favicon</option>
+                    <option value="lucide">Lucide Icon</option>
+                    <option value="custom">Custom Upload</option>
+                    <option value="initial">Initial Letter</option>
+                  </select>
+                </div>
+                {/* Custom upload field */}
+                {(link.iconSource || 'lucide') === 'custom' && (
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Custom Icon</span>
+                    {link.iconValue ? (
+                      <div className="flex items-center gap-2">
+                        <img src={link.iconValue} alt="" className="h-6 w-6 object-contain" />
+                        <button
+                          type="button"
+                          className="text-xs px-2 py-1 rounded"
+                          style={{ color: 'var(--status-offline)' }}
+                          onClick={() => updateLink(index, { iconValue: null })}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ) : (
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="text-xs"
+                        style={{ color: 'var(--text-secondary)' }}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const formData = new FormData();
+                          formData.append('image', file);
+                          try {
+                            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                            const data = await res.json();
+                            if (data.url) {
+                              updateLink(index, { iconValue: data.url });
+                            }
+                          } catch { /* ignore */ }
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
                 <input
                   type="text"
                   className="rounded border px-3 py-2 text-sm"

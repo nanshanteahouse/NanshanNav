@@ -1,11 +1,11 @@
 import type { StateCreator } from 'zustand';
-import type { DashboardSettings } from '@/types/dashboard.ts';
+import type { DashboardSettings, ThemeMode } from '@/types/dashboard.ts';
 import { DEFAULT_SETTINGS } from '@/types/dashboard.ts';
 
 export interface SettingsSlice {
   settings: DashboardSettings;
   updateSettings: (patch: Partial<DashboardSettings>) => void;
-  toggleDarkMode: () => void;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 export const createSettingsSlice: StateCreator<SettingsSlice, [], []> = (set) => ({
@@ -14,8 +14,8 @@ export const createSettingsSlice: StateCreator<SettingsSlice, [], []> = (set) =>
     set((state) => ({
       settings: { ...state.settings, ...patch },
     })),
-  toggleDarkMode: () =>
+  setThemeMode: (mode) =>
     set((state) => ({
-      settings: { ...state.settings, darkMode: !state.settings.darkMode },
+      settings: { ...state.settings, themeMode: mode },
     })),
 });
