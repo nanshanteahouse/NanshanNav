@@ -543,6 +543,17 @@ GET /api/dashboard → 200
 - 本地缓存 7 天，减少重复请求
 - 自动尝试 HTTPS → HTTP 回退
 
+### 链接健康检查
+
+| 方法 | 路径 | 参数 | 说明 |
+|------|------|------|------|
+| `GET` | `/api/health-check` | `url` | 代理检测目标 URL 可达性 |
+
+- 优先使用 HEAD 请求，若服务器返回 405 自动回退 GET
+- 服务端代理转发，避免浏览器跨域限制
+- 超时时间：5 秒
+- 响应格式：`{ reachable: boolean, statusCode?: number, error?: string }`
+
 ### 静态文件
 
 | 路径 | 说明 |
