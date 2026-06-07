@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { WidgetComponentProps } from '@/types/widget.ts';
 import { Modal } from '@/components/ui/modal';
+import { normalizeUrl } from '@/lib/utils/url.ts';
 
 // ── Local options type (not yet in @/types/widget) ──
 
@@ -115,7 +116,7 @@ export default function ImageWidget({
   const wrappedContent =
     opts.onClick === 'link' && opts.linkUrl ? (
       <a
-        href={opts.linkUrl}
+        href={normalizeUrl(opts.linkUrl)}
         target={opts.openInNewTab ? '_blank' : undefined}
         rel={opts.openInNewTab ? 'noopener noreferrer' : undefined}
         className="block h-full w-full"

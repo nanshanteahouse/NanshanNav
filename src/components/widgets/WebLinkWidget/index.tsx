@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { WidgetComponentProps, WebLinkOptions, LinkItem } from '@/types/widget.ts';
 import { checkLinkHealth } from '@/lib/api/link-health.ts';
+import { normalizeUrl } from '@/lib/utils/url.ts';
 import LinkItemCard from './LinkItem.tsx';
 
 export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
@@ -28,10 +29,11 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
   }
 
   const handleClick = (url: string) => {
+    const targetUrl = normalizeUrl(url);
     if (opts.openInNewTab) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
     } else {
-      window.location.assign(url);
+      window.location.assign(targetUrl);
     }
   };
 
