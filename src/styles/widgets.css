@@ -13,6 +13,13 @@
   transition-property: transform, width, height;
 }
 
+/* Suppress transitions during window resize to avoid visual glitches */
+.resizing .react-grid-layout,
+.resizing .react-grid-item,
+.resizing .react-grid-item.cssTransforms {
+  transition: none !important;
+}
+
 /* Widget Shell */
 .widget-shell {
   height: 100%;

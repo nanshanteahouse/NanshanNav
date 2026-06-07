@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from 'react';
+import { useCallback, useRef, useMemo, useEffect } from 'react';
 import { Responsive, useContainerWidth } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -149,11 +149,9 @@ export function DashboardCanvas() {
   }, [showGridLines, mounted, width, bp, cellSize]);
 
   const gridItems = useMemo(() => {
-    const layoutIds = new Set(gridLayout.map((i) => i.i));
-    return widgets
-      .filter((w) => layoutIds.has(w.id))
-      .map((widget) => {
-        const item = gridLayout.find((i) => i.i === widget.id)!;
+    return widgets.map((widget) => {
+      const item = gridLayout.find((i) => i.i === widget.id);
+      if (item) {
         return (
           <div
             key={widget.id}
@@ -172,8 +170,43 @@ export function DashboardCanvas() {
             <WidgetCard widget={widget} />
           </div>
         );
-      });
+      }
+      // Widget not yet in this breakpoint's layout — use default size.
+      // react-grid-layout's synchronizeLayoutWithChildren2 will compact and
+      // assign a proper (x, y) position from the generated layout.
+      const def = getWidgetDefinition(widget.type);
+      return (
+        <div
+          key={widget.id}
+          data-grid={{
+            w: def.defaultSize.w,
+            h: def.defaultSize.h,
+          }}
+        >
+          <WidgetCard widget={widget} />
+        </div>
+      );
+    });
   }, [widgets, gridLayout]);
+
+  // Disable CSS transitions during window resize to avoid visual glitches.
+  // The class is removed after a 100ms debounce so transitions re-enable
+  // only after the user stops resizing.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      document.documentElement.classList.add('resizing');
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        document.documentElement.classList.remove('resizing');
+      }, 100);
+    };
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      clearTimeout(timer);
+    };
+  }, []);
 
   if (!mounted) {
     return (
