@@ -42,7 +42,7 @@
 
 ### 设计理念
 
-- **自托管优先**：所有数据存储在本地，不依赖任何第三方云服务
+- **自托管优先**：所有数据存储在本地，不依赖任何第三方云服务。面板配置可通过服务端持久化自动跨设备同步。
 - **模块化组件**：通过组件注册表（Widget Registry）体系，轻松扩展新功能
 - **高度可定制**：自由布局、自定义主题色、多语言支持
 - **家庭网络场景驱动**：专为家庭实验室、NAS 用户、自建服务爱好者设计
@@ -70,7 +70,28 @@
 内置中文（zh-CN）和英文（en）语言包，支持一键切换。翻译覆盖了应用界面、组件标签和设置选项等所有 UI 文本。
 
 ### 📦 数据持久化
-仪表盘配置（组件布局、设置、主题）通过 `localStorage` 持久化保存。支持一键导出/导入完整配置，方便备份和迁移。
+
+仪表盘配置（组件布局、设置、主题）通过双层策略持久化：
+
+1. **本地缓存**：`localStorage` 提供即时加载，首次打开无白屏
+2. **服务端存储**：退出编辑模式时自动 `PUT /api/dashboard` 保存到服务端文件 `server/config/dashboard-state.json`；页面加载时自动 `GET /api/dashboard` 拉取最新配置
+
+架构决策：
+
+| 数据层 | 角色 | 存储位置 |
+|--------|------|----------|
+| 服务端 | **可信源** (source of truth) | `server/config/dashboard-state.json` |
+| 浏览器 | **写入缓存** (write-through cache) | `localStorage` (`dashboard-storage`) |
+
+这意味着在同一台电脑配置的面板，换设备打开也会自动加载——只要设备可以访问服务端 API。
+
+#### 编辑模式保护
+
+编辑模式通过 `/admin` 路径访问，并由 Nginx + Authelia 保护。服务端 API（`/api/dashboard`、`/api/pve/*`）也在同一 Authelia 认证域下。
+
+> **设计选择**：`GET /api/dashboard` 是否需要认证由部署者决定。当前配置下 `/api/*` 路径全部受 Authelia 保护，这意味着**未登录用户看到的是默认空白面板**。如果你希望面板对访客可见但编辑受限，可以从 Nginx 配置中将 `GET /api/dashboard` 豁免出 Authelia 保护（详见[常见问题](#如何让面板配置对访客可见)）。
+
+也支持手动导出/导入 JSON 文件作为离线备份方案。
 
 ### 🔧 编辑模式
 - 通过访问 `/admin` 路径自动进入编辑模式
@@ -320,7 +341,8 @@ NanshanNav/
 │   ├── hooks/                         # 自定义 Hooks
 │   │   ├── useAutoEditMode.ts         # URL 路径自动切换编辑模式
 │   │   ├── useKeyboardShortcut.ts     # 全局键盘快捷键
-│   │   └── useElementSize.ts          # DOM 元素尺寸监听
+│   │   ├── useElementSize.ts          # DOM 元素尺寸监听
+│   │   └── useServerSync.ts           # 服务端面板配置同步
 │   │
 │   ├── i18n/                          # 国际化
 │   │   ├── index.ts
@@ -463,6 +485,32 @@ sudo systemctl enable --now nanshan-nav-backend
 
 ## API 接口
 
+### 面板配置
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/dashboard` | 加载已保存的面板配置（首次返回 404） |
+| `PUT` | `/api/dashboard` | 保存面板配置（退出编辑模式时自动调用） |
+
+请求/响应格式：
+
+```json
+PUT /api/dashboard
+{
+  "settings": { "themeMode": "dark", "cellSize": 50, ... },
+  "layouts": { "lg": [...], "md": [...], ... },
+  "widgets": [{ "id": "...", "type": "clock", ... }, ...]
+}
+
+GET /api/dashboard → 200
+{
+  "settings": { ... },
+  "layouts": { ... },
+  "widgets": [ ... ],
+  "updatedAt": "2026-06-07T10:58:25.425Z"
+}
+```
+
 ### 上传
 
 | 方法 | 路径 | 说明 |
@@ -555,15 +603,18 @@ sequenceDiagram
 
 ### 数据持久化
 
-使用 Zustand 的 `persist` 中间件，通过 `localStorage` 持久化设置、布局和组件数据。
+面板配置通过双层策略持久化：
 
-存储键：`dashboard-storage`
+1. **Zustand `persist` 中间件**：以 `localStorage`（键 `dashboard-storage`）作为本地缓存，提供首屏秒开
+2. **`useServerSync` Hook**：页面加载时后台静默从服务端拉取最新配置，自动覆盖本地缓存；退出编辑模式时自动将完整状态保存到服务端
+
+持久化的数据包括 `settings`（设置）、`layouts`（布局）、`widgets`（组件）。`uiSlice`（编辑模式、侧边栏）不持久化。
 
 支持向后兼容：自动将旧版的 `darkMode` 字段迁移到 `themeMode`。
 
 ### 导出/导入
 
-工具栏提供配置导出/导入功能，方便备份和在不同设备间迁移仪表盘配置。
+工具栏提供配置导出/导入功能，方便离线备份和手动迁移仪表盘配置。服务端自动持久化为日常使用提供免手动备份的体验。
 
 ---
 
@@ -651,7 +702,28 @@ npm run test -- src/__tests__/  # 指定测试目录
 
 ### 如何备份仪表盘配置？
 
-使用工具栏的导出功能，将配置导出为 JSON 文件。需要恢复时使用导入功能即可。
+**自动备份**：退出编辑模式时，面板配置自动保存到服务端 `server/config/dashboard-state.json`。你可以直接备份该文件。
+
+**手动备份**：使用工具栏的导出功能，将配置导出为 JSON 文件。需要恢复时使用导入功能即可。
+
+### 如何让面板配置对访客可见？
+
+默认情况下，`/api/dashboard` 受 Authelia 保护，因此未登录用户看到的始终是空白面板。如果你希望面板配置对访客也可见（仅编辑受限），在 Nginx 配置的 `nav.conf` 中将 `GET /api/dashboard` 豁免出 `/api/` 的 Authelia 保护：
+
+```nginx
+# 在 nav.conf 的 location /api/ 之前添加
+location = /api/dashboard {
+    limit_except GET {  # 只允许 GET，PUT 需要认证
+        include /etc/nginx/snippets/authelia-authrequest.conf;
+        auth_request /internal-auth;
+        error_page 401 =302 https://auth.nanshan.moe/?rd=$scheme://$http_host$request_uri;
+    }
+    proxy_pass http://127.0.0.1:3101;
+    include /etc/nginx/conf.d/proxy-params.conf;
+}
+```
+
+这样访客可以看到已配置的面板，但修改面板需要在编辑模式下（需认证）才能保存。
 
 ### 文件上传位置？
 
