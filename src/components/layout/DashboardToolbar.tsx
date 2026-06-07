@@ -41,6 +41,8 @@ export function DashboardToolbar() {
         )}
       </div>
       <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <LanguageSelect />
         {editMode && (
           <Button
             variant="ghost"
@@ -52,9 +54,7 @@ export function DashboardToolbar() {
           </Button>
         )}
         <GridLinesToggle />
-        <ExportImportButtons />
         <CellSizeSlider />
-        <ThemeToggle />
         {editMode && (
           <Button
             variant="ghost"
@@ -66,7 +66,7 @@ export function DashboardToolbar() {
             <Palette className="h-4 w-4" />
           </Button>
         )}
-        <LanguageSelect />
+        <ExportImportButtons />
         <EditModeToggle />
       </div>
       {editMode && (
