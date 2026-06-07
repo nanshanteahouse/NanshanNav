@@ -2,16 +2,19 @@ import { Pencil, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDashboardStore } from '@/store/index';
 import { useTranslation } from '@/i18n';
+import { useServerSync } from '@/hooks/useServerSync';
 
 export function EditModeToggle() {
   const editMode = useDashboardStore((s) => s.editMode);
   const toggleEditMode = useDashboardStore((s) => s.toggleEditMode);
   const setSidebarOpen = useDashboardStore((s) => s.setSidebarOpen);
   const { t } = useTranslation();
+  const { saveToServer } = useServerSync();
 
   const handleToggle = () => {
     if (editMode) {
-      // Exiting edit mode: back to homepage, no auth needed
+      // Exiting edit mode: persist config to server, then back to homepage
+      saveToServer();
       toggleEditMode();
       setSidebarOpen(false);
       window.history.pushState(null, '', '/');
@@ -19,7 +22,6 @@ export function EditModeToggle() {
     }
 
     // Entering edit mode: trigger Authelia auth via full page navigation
-    // pushState alone bypasses nginx's auth_request, causing /api/* calls to fail
     sessionStorage.setItem('nanshan_edit_mode', '1');
     window.location.assign('/admin');
   };

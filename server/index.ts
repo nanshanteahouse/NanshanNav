@@ -2,7 +2,7 @@ import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { randomUUID } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import pveProxy from './routes/pve-proxy.js';
@@ -20,6 +20,7 @@ const ALLOWED_TYPES = [
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
 const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || './uploads');
+const DASHBOARD_STATE_FILE = path.resolve(process.cwd(), 'server/config/dashboard-state.json');
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
 const app = new Hono();
@@ -151,6 +152,45 @@ app.post('/api/upload', async (c) => {
   } catch (err) {
     console.error('Upload error:', err);
     return c.json({ error: 'Internal server error.' }, 500);
+  }
+});
+
+// GET /api/dashboard — load saved dashboard config
+app.get('/api/dashboard', async (c) => {
+  if (!existsSync(DASHBOARD_STATE_FILE)) {
+    return c.json({ error: 'No dashboard config yet' }, 404);
+  }
+  try {
+    const raw = await readFile(DASHBOARD_STATE_FILE, 'utf-8');
+    return c.json(JSON.parse(raw));
+  } catch {
+    return c.json({ error: 'Failed to read dashboard config' }, 500);
+  }
+});
+
+// PUT /api/dashboard — save dashboard config
+app.put('/api/dashboard', async (c) => {
+  const body = await c.req.json();
+  const { settings, layouts, widgets } = body;
+
+  if (!settings || !layouts || !Array.isArray(widgets)) {
+    return c.json({ error: 'Invalid payload: settings, layouts, widgets required' }, 400);
+  }
+
+  const state = {
+    settings,
+    layouts,
+    widgets,
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    await writeFile(DASHBOARD_STATE_FILE, JSON.stringify(state, null, 2), 'utf-8');
+    console.log('[Dashboard] Config saved');
+    return c.json({ success: true, updatedAt: state.updatedAt });
+  } catch (err) {
+    console.error('[Dashboard] Save failed:', err);
+    return c.json({ error: 'Failed to save dashboard config' }, 500);
   }
 });
 
