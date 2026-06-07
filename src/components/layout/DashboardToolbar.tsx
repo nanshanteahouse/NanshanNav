@@ -55,19 +55,23 @@ export function DashboardToolbar() {
         <ExportImportButtons />
         <CellSizeSlider />
         <ThemeToggle />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setColorEditorOpen(true)}
-          aria-label={t('toolbar.colorPalette')}
-          title={t('toolbar.colorPalette')}
-        >
-          <Palette className="h-4 w-4" />
-        </Button>
+        {editMode && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setColorEditorOpen(true)}
+            aria-label={t('toolbar.colorPalette')}
+            title={t('toolbar.colorPalette')}
+          >
+            <Palette className="h-4 w-4" />
+          </Button>
+        )}
         <LanguageSelect />
         <EditModeToggle />
       </div>
-      <ColorThemeEditor open={colorEditorOpen} onClose={() => setColorEditorOpen(false)} />
+      {editMode && (
+        <ColorThemeEditor open={colorEditorOpen} onClose={() => setColorEditorOpen(false)} />
+      )}
     </header>
   );
 }

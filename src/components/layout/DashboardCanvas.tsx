@@ -135,6 +135,19 @@ export function DashboardCanvas() {
 
   const gridLayout = useMemo(() => layouts[bp] ?? [], [layouts, bp]);
 
+  // Compute CSS variables for background grid lines (Excel-style)
+  const gridStyle = useMemo(() => {
+    if (!showGridLines || !mounted || width === 0) return undefined;
+    const cols = COLS[bp];
+    const usableWidth = width - PADDING * 2 - MARGIN_X * (cols - 1);
+    const colW = safeDiv(usableWidth, cols);
+    return {
+      '--grid-step-x': `${colW + MARGIN_X}px`,
+      '--grid-step-y': `${cellSize + MARGIN_Y}px`,
+      '--grid-offset': `${PADDING * 2}px`,
+    } as React.CSSProperties;
+  }, [showGridLines, mounted, width, bp, cellSize]);
+
   const gridItems = useMemo(() => {
     const layoutIds = new Set(gridLayout.map((i) => i.i));
     return widgets
@@ -205,9 +218,10 @@ export function DashboardCanvas() {
   return (
     <div
       ref={containerRef}
-      className={cn('flex-1 overflow-auto p-4', showGridLines && 'grid-lines-visible')}
+      className={cn('flex-1 overflow-auto p-3 relative', showGridLines && 'grid-lines-visible')}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      style={gridStyle}
     >
       <Responsive
         layouts={layouts as unknown as Record<string, Layout>}

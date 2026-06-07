@@ -163,6 +163,7 @@ export interface TranslationSchema {
   };
   sidebar: {
     title: string;
+    open: string;
     close: string;
     widgetLibrary: string;
     addWidget: string;

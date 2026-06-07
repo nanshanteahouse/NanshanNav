@@ -65,9 +65,21 @@
 
 /* In view mode, hide the header */
 
-/* Grid Lines */
-.grid-lines-visible .react-grid-item {
-  outline: 1px dashed var(--border-default);
+/* Grid Lines — Excel-style background overlay */
+.grid-lines-visible::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(to right, var(--text-muted) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--text-muted) 1px, transparent 1px);
+  background-size:
+    var(--grid-step-x, 60px) var(--grid-step-y, 60px);
+  background-position:
+    var(--grid-offset, 12px) var(--grid-offset, 12px);
+  opacity: 0.22;
 }
 
 /* Edit mode grid item hover */

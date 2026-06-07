@@ -165,6 +165,7 @@ const en: TranslationSchema = {
   },
   sidebar: {
     title: 'Widget Library',
+    open: 'Open sidebar',
     close: 'Close sidebar',
     widgetLibrary: 'Widget Library',
     addWidget: 'Add Widget',

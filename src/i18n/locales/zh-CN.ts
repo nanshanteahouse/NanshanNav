@@ -165,6 +165,7 @@ const zhCN: TranslationSchema = {
   },
   sidebar: {
     title: '组件库',
+    open: '展开侧边栏',
     close: '关闭侧边栏',
     widgetLibrary: '组件库',
     addWidget: '添加组件',
