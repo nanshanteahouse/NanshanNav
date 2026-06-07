@@ -18,7 +18,6 @@ type SettingsComponentType = React.ComponentType<{
   widgetId: string;
   options: Record<string, unknown>;
   onChange: (newOptions: Record<string, unknown>) => void;
-  onDelete: () => void;
 }>;
 
 export default function WidgetSettings({ widgetId, options, onChange, onClose, open }: WidgetSettingsProps) {
@@ -104,7 +103,6 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
               widgetId={widgetId}
               options={options}
               onChange={onChange}
-              onDelete={handleDelete}
             />
           ) : (
             <div className="flex items-center justify-center p-8" style={{ color: 'var(--text-muted)' }}>

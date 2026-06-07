@@ -1,5 +1,4 @@
 import type { WidgetSettingsProps } from '@/types/widget.ts';
-import { Trash2 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { ImageUploader } from './components/ImageUploader';
@@ -56,7 +55,6 @@ export default function ImageSettings({
   widgetId: _widgetId,
   options,
   onChange,
-  onDelete,
 }: WidgetSettingsProps) {
   const opts = options as unknown as ImageOptions;
 
@@ -381,21 +379,6 @@ export default function ImageSettings({
           onChange={(e) => update({ altText: e.target.value })}
         />
       </label>
-
-      <div className="mt-2 border-t pt-4" style={{ borderColor: 'var(--border-default)' }}>
-        <button
-          type="button"
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: 'var(--status-offline)',
-            color: '#fff',
-          }}
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete Widget
-        </button>
-      </div>
     </div>
   );
 }

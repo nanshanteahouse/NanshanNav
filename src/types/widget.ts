@@ -77,7 +77,6 @@ export interface WidgetSettingsProps {
   widgetId: string;
   options: Record<string, unknown>;
   onChange: (newOptions: Record<string, unknown>) => void;
-  onDelete: () => void;
 }
 
 // ── Widget-Specific Options ──

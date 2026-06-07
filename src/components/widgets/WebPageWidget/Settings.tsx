@@ -1,6 +1,6 @@
 import type { WidgetSettingsProps, WebPageOptions } from '@/types/widget.ts';
 
-export default function WebPageSettings({ widgetId: _widgetId, options, onChange, onDelete: _onDelete }: WidgetSettingsProps) {
+export default function WebPageSettings({ widgetId: _widgetId, options, onChange }: WidgetSettingsProps) {
   const opts = options as unknown as WebPageOptions;
 
   return (

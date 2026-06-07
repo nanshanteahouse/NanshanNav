@@ -2,8 +2,6 @@ import { useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { WidgetSettingsProps, MarkdownTextOptions } from '@/types/widget.ts';
-import { Trash2 } from 'lucide-react';
-
 /**
  * Sanitizes URLs to prevent XSS via javascript:, vbscript:, and data: schemes.
  * Returns empty string for dangerous URLs, original URL otherwise.
@@ -20,7 +18,7 @@ function sanitizeUrl(url: string): string {
   return url;
 }
 
-export default function MarkdownTextSettings({ widgetId: _widgetId, options, onChange, onDelete }: WidgetSettingsProps) {
+export default function MarkdownTextSettings({ widgetId: _widgetId, options, onChange }: WidgetSettingsProps) {
   const opts = options as unknown as MarkdownTextOptions;
   const [content, setContent] = useState(() => opts.content);
   const [contentKey, setContentKey] = useState(() => opts.content);
@@ -91,21 +89,6 @@ export default function MarkdownTextSettings({ widgetId: _widgetId, options, onC
           placeholder="Write your markdown here..."
         />
       )}
-
-      <div className="mt-2 border-t pt-4" style={{ borderColor: 'var(--border-default)' }}>
-        <button
-          type="button"
-          className="flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: 'var(--status-offline)',
-            color: '#fff',
-          }}
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete Widget
-        </button>
-      </div>
     </div>
   );
 }

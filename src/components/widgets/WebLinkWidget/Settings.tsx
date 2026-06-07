@@ -4,7 +4,7 @@ import { generateId } from '@/lib/utils/generate-id.ts';
 import { IconPicker } from '@/components/ui/icon-picker';
 import { Trash2, Plus } from 'lucide-react';
 
-export default function WebLinkSettings({ widgetId: _widgetId, options, onChange, onDelete }: WidgetSettingsProps) {
+export default function WebLinkSettings({ widgetId: _widgetId, options, onChange }: WidgetSettingsProps) {
   const opts = options as unknown as WebLinkOptions;
   const [links, setLinks] = useState<LinkItem[]>(() =>
     Array.isArray(opts.links) ? [...opts.links] : [],
@@ -275,21 +275,6 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
             </p>
           )}
         </div>
-      </div>
-
-      <div className="mt-2 border-t pt-4" style={{ borderColor: 'var(--border-default)' }}>
-        <button
-          type="button"
-          className="flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: 'var(--status-offline)',
-            color: '#fff',
-          }}
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete Widget
-        </button>
       </div>
     </div>
   );

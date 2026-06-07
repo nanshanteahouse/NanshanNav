@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { WidgetSettingsProps, PveStatusOptions } from '@/types/widget.ts';
-import { Trash2 } from 'lucide-react';
-
-export default function PveStatusSettings({ widgetId: _widgetId, options, onChange, onDelete }: WidgetSettingsProps) {
+export default function PveStatusSettings({ widgetId: _widgetId, options, onChange }: WidgetSettingsProps) {
   const opts = options as unknown as PveStatusOptions;
 
   const update = (patch: Partial<PveStatusOptions>) => {
@@ -241,21 +239,6 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
           onChange={(e) => update({ refreshInterval: Number(e.target.value) || 15 })}
         />
       </label>
-
-      <div className="mt-2 border-t pt-4" style={{ borderColor: 'var(--border-default)' }}>
-        <button
-          type="button"
-          className="flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: 'var(--status-offline)',
-            color: '#fff',
-          }}
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete Widget
-        </button>
-      </div>
     </div>
   );
 }
