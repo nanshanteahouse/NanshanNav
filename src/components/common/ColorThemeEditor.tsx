@@ -83,7 +83,7 @@ export function ColorThemeEditor({ open, onClose }: ColorThemeEditorProps) {
       </div>
 
       {/* Color fields */}
-      <div className="flex flex-col gap-2.5 max-h-[50vh] overflow-y-auto pr-1">
+      <div className="flex flex-col gap-2.5 max-h-[50vh] overflow-y-auto pr-1 scrollbar-thin">
         {COLOR_FIELDS.map(({ key, i18nKey }) => (
           <ColorPicker
             key={key}

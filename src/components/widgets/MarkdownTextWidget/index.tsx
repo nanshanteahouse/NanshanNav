@@ -36,7 +36,7 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
 
   return (
     <div
-      className="h-full w-full overflow-auto p-4"
+      className="h-full w-full overflow-auto p-4 scrollbar-thin"
       data-widget-type="markdown-text"
       style={{
         wordBreak: 'break-word',
@@ -84,7 +84,12 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
           border-radius: 8px;
           padding: 1em;
           overflow-x: auto;
+          scrollbar-width: thin;
+          scrollbar-color: var(--border-default) transparent;
         }
+        .prose pre::-webkit-scrollbar { width: 4px; height: 4px; }
+        .prose pre::-webkit-scrollbar-track { background: transparent; }
+        .prose pre::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
         .prose pre code {
           background: none;
           border: none;

@@ -36,7 +36,7 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
       <div
         data-widget-type={widget.type}
         data-widget-id={widget.id}
-        className="widget-body h-full"
+        className="widget-body h-full scrollbar-thin"
       >
         {children}
       </div>
@@ -75,7 +75,7 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
         </div>
       </div>
 
-      <div className="widget-body h-full overflow-hidden">{children}</div>
+      <div className="widget-body h-full overflow-hidden scrollbar-thin">{children}</div>
 
       <WidgetSettings
         widgetId={widget.id}

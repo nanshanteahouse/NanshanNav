@@ -13,7 +13,7 @@ export function Sidebar() {
   if (!editMode || !sidebarOpen) return null;
 
   return (
-    <aside className="w-[280px] shrink-0 h-full overflow-y-auto border-r border-[var(--border-default)] bg-[var(--bg-secondary)]">
+    <aside className="w-[280px] shrink-0 h-full overflow-y-auto scrollbar-thin border-r border-[var(--border-default)] bg-[var(--bg-secondary)]">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]">
         <span className="text-sm font-semibold text-[var(--text-primary)]">
           {t('sidebar.widgetLibrary')}

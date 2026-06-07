@@ -53,7 +53,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       aria-modal="true"
     >
       <div
-        className="relative w-full max-w-2xl rounded-lg p-8 shadow-lg modal-body"
+        className="relative w-full max-w-2xl rounded-lg p-8 shadow-lg modal-body scrollbar-thin"
         style={{
           backgroundColor: 'var(--bg-widget)',
           border: '1px solid var(--border-default)',

@@ -104,19 +104,23 @@
   color: var(--text-primary);
 }
 
-/* Scrollbar styling */
-.widget-body::-webkit-scrollbar,
-.modal-body::-webkit-scrollbar {
-  width: 4px;
+/* Scrollbar styling — unified thin 4px scrollbar, cross-browser */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
 }
 
-.widget-body::-webkit-scrollbar-track,
-.modal-body::-webkit-scrollbar-track {
+/* WebKit thin scrollbar — 4px width, transparent track, border-colored rounded thumb */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.widget-body::-webkit-scrollbar-thumb,
-.modal-body::-webkit-scrollbar-thumb {
+.scrollbar-thin::-webkit-scrollbar-thumb {
   background: var(--border-default);
   border-radius: 2px;
 }

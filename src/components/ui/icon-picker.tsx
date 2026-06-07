@@ -79,7 +79,7 @@ function InlineIconPicker({ value, onChange }: IconPickerProps) {
       )}
 
       <div
-        className="grid gap-1 overflow-y-auto rounded-md border p-2"
+        className="grid gap-1 overflow-y-auto rounded-md border p-2 scrollbar-thin"
         style={{
           gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))',
           maxHeight: '240px',
@@ -241,7 +241,7 @@ function PopoverIconPicker({ value, onChange }: IconPickerProps) {
           </div>
 
           <div
-            className="grid grid-cols-7 gap-0.5 overflow-y-auto p-1"
+            className="grid grid-cols-7 gap-0.5 overflow-y-auto p-1 scrollbar-thin"
             style={{ maxHeight: '200px' }}
           >
             {displayed.map(({ name, Icon }) => {

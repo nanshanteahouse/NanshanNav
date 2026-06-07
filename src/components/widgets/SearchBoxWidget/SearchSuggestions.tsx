@@ -70,7 +70,7 @@ export default function SearchSuggestions({ suggestions, query, onSelect, visibl
   return createPortal(
     <ul
       ref={listRef}
-      className="fixed z-[9998] max-h-48 overflow-auto rounded-lg border py-1 shadow-lg"
+      className="fixed z-[9998] max-h-48 overflow-auto rounded-lg border py-1 shadow-lg scrollbar-thin"
       style={{
         top: anchorRect.bottom + 4,
         left: anchorRect.left,
