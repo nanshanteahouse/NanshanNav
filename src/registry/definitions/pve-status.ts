@@ -6,7 +6,7 @@ export const pveStatusDefinition: WidgetDefinition<'pve-status'> = {
   displayKey: 'registry.widget.pveStatus',
   icon: 'Server',
   defaultSize: { w: 4, h: 5 },
-  minSize: { w: 3, h: 4 },
+  minSize: { w: 3, h: 3 },
   defaultOptions: {
     proxmoxHost: '',
     nodeName: 'pve',

@@ -6,7 +6,7 @@ export const searchBoxDefinition: WidgetDefinition<'search-box'> = {
   displayKey: 'registry.widget.searchBox',
   icon: 'Search',
   defaultSize: { w: 4, h: 2 },
-  minSize: { w: 2, h: 2 },
+  minSize: { w: 2, h: 1 },
   defaultOptions: {
     defaultEngine: 'google',
     customEngineUrl: '',
