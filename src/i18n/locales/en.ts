@@ -183,6 +183,7 @@ const en: TranslationSchema = {
     widgetTitlePlaceholder: 'Enter widget title...',
     loading: 'Loading settings...',
     deleteWidget: 'Delete Widget',
+    confirmDeleteMessage: 'Are you sure you want to delete this widget?',
     noSettings: 'No settings available for this widget type.',
     typeAndId: 'Type: {type} · ID: {id}',
   },

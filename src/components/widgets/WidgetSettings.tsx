@@ -27,12 +27,15 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
   const updateWidget = useDashboardStore((s) => s.updateWidget);
   const [SettingsComponent, setSettingsComponent] = useState<SettingsComponentType | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
     if (!open || !widget) {
       return;
     }
+
+    setConfirmingDelete(false);
 
     const def = registry[widget.type];
     if (!def?.settingsLoader) {
@@ -124,16 +127,44 @@ export default function WidgetSettings({ widgetId, options, onChange, onClose, o
           <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
             {t('settings.typeAndId', { type: widget?.type ?? 'unknown', id: widgetId })}
           </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDelete}
-            className="text-[var(--status-offline)] w-full justify-center"
-            style={{ color: 'var(--status-offline)' }}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            {t('settings.deleteWidget')}
-          </Button>
+          {confirmingDelete ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+                {t('settings.confirmDeleteMessage')}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setConfirmingDelete(false)}
+                  className="flex-1 justify-center"
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleDelete}
+                  className="flex-1 justify-center"
+                  style={{ backgroundColor: 'var(--status-offline)', color: '#fff' }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t('common.confirm')}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setConfirmingDelete(true)}
+              className="w-full justify-center"
+              style={{ backgroundColor: 'var(--status-offline)', color: '#fff' }}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              {t('settings.deleteWidget')}
+            </Button>
+          )}
         </div>
       </div>
     </Modal>

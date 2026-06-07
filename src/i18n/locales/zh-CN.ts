@@ -183,6 +183,7 @@ const zhCN: TranslationSchema = {
     widgetTitlePlaceholder: '输入组件标题...',
     loading: '加载设置中...',
     deleteWidget: '删除组件',
+    confirmDeleteMessage: '确认删除此组件？此操作不可撤销。',
     noSettings: '此组件类型没有可配置项。',
     typeAndId: '类型: {type} · ID: {id}',
   },

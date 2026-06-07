@@ -181,6 +181,7 @@ export interface TranslationSchema {
     widgetTitlePlaceholder: string;
     loading: string;
     deleteWidget: string;
+    confirmDeleteMessage: string;
     noSettings: string;
     typeAndId: string;
   };
