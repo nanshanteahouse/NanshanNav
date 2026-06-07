@@ -234,6 +234,15 @@ app.get(
   }),
 );
 
+// SPA static assets and client-side routing fallback.
+// Enables direct IP deployment (no nginx). When behind nginx these routes
+// are idle — nginx handles / and /assets/ directly, only proxying /api/*.
+const DIST_DIR = path.resolve(process.cwd(), 'dist');
+
+app.get('/favicon.svg', serveStatic({ root: DIST_DIR }));
+app.get('/assets/*', serveStatic({ root: DIST_DIR }));
+app.get('*', serveStatic({ root: DIST_DIR, path: 'index.html' }));
+
 serve(
   {
     fetch: app.fetch,
