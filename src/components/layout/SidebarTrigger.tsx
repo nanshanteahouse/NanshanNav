@@ -23,7 +23,7 @@ export function SidebarTrigger() {
   return (
     <button
       onClick={() => setSidebarOpen(true)}
-      className="group relative w-2 hover:w-7 shrink-0 cursor-pointer transition-all duration-200 flex items-center justify-center border-r border-[var(--border-default)]/40 hover:border-[var(--border-default)]"
+      className="group relative w-4 hover:w-7 shrink-0 cursor-pointer transition-all duration-200 flex items-center justify-center border-r border-[var(--accent-primary)]/25 hover:border-[var(--accent-primary)]/40"
       aria-label={t('sidebar.open')}
     >
       {/* always-visible strip background — must contrast with body bg-primary */}
