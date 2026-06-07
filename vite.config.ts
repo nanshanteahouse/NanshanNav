@@ -29,6 +29,10 @@ export default defineConfig({
         target: `http://localhost:${process.env.BACKEND_PORT || '3001'}`,
         changeOrigin: true,
       },
+      '/api/health-check': {
+        target: `http://localhost:${process.env.BACKEND_PORT || '3001'}`,
+        changeOrigin: true,
+      },
     },
   },
 })

@@ -46,6 +46,38 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
 
 app.route('/api/pve', pveProxy);
 
+// Health-check proxy — server-side HEAD request to avoid CORS
+app.get('/api/health-check', async (c) => {
+  const url = c.req.query('url');
+  if (!url) return c.json({ error: 'Missing url' }, 400);
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return c.json({ error: 'Only http/https URLs are allowed' }, 400);
+    }
+  } catch {
+    return c.json({ error: 'Invalid URL' }, 400);
+  }
+
+  try {
+    let response = await fetch(url, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(5000),
+    });
+    if (response.status === 405) {
+      response = await fetch(url, {
+        signal: AbortSignal.timeout(5000),
+      });
+    }
+    return c.json({ reachable: true, statusCode: response.status });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return c.json({ reachable: false, error: message });
+  }
+});
+
 // Favicon proxy with caching
 app.get('/api/favicon', async (c) => {
   const url = c.req.query('url');

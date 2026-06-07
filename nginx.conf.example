@@ -71,6 +71,16 @@ location /uploads/ {
 }
 
 # ---------------------------------------------------------------------------
+# Health check API — proxied to the Hono server (port 3001)
+# ---------------------------------------------------------------------------
+location /api/health-check {
+    proxy_pass http://127.0.0.1:3001;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+
+# ---------------------------------------------------------------------------
 # PVE API — proxied to the Hono server (port 3001) which handles token auth
 # ---------------------------------------------------------------------------
 location /api/pve/ {
