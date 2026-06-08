@@ -22,7 +22,7 @@ const variantStyles: Record<NonNullable<ButtonProps['variant']>, string> = {
 const sizeStyles: Record<NonNullable<ButtonProps['size']>, string> = {
   sm: 'px-2.5 py-1 text-xs rounded-md',
   default: 'px-4 py-2 text-sm rounded-lg',
-  icon: 'p-2 rounded-lg',
+  icon: 'p-2 rounded-lg min-h-[44px] min-w-[44px]',
 };
 
 export function Button({

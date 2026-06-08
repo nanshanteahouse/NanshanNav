@@ -45,7 +45,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   return createPortal(
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
       onMouseDown={handleOverlayMouseDown}
       onMouseMove={blockPropagation}
       onMouseUp={blockPropagation}
@@ -53,24 +53,25 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       aria-modal="true"
     >
       <div
-        className="relative w-full max-w-2xl rounded-lg p-8 shadow-lg modal-body scrollbar-thin"
+        className="relative w-full max-w-2xl max-sm:max-w-[calc(100%-1rem)] rounded-lg p-8 max-sm:p-4 shadow-lg modal-body scrollbar-thin"
         style={{
           backgroundColor: 'var(--bg-widget)',
           border: '1px solid var(--border-default)',
           maxHeight: '90vh',
           overflow: 'auto',
+          marginBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
         <div className="mb-4 flex items-center justify-between">
           <h2
-            className="text-lg font-semibold"
+            className="max-sm:text-base text-lg font-semibold"
             style={{ color: 'var(--text-primary)' }}
           >
             {title ?? ''}
           </h2>
           <button
             onClick={onClose}
-            className="rounded-md p-1 transition-colors hover:opacity-70"
+            className="rounded-md p-2 max-sm:p-2.5 min-h-[44px] min-w-[44px] transition-colors hover:opacity-70"
             style={{ color: 'var(--text-muted)' }}
             aria-label="Close"
           >

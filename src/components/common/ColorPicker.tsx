@@ -10,9 +10,9 @@ export function ColorPicker({ value, onChange, label }: ColorPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 max-sm:flex-col max-sm:items-start max-sm:gap-1">
       {label && (
-        <span className="text-sm min-w-[90px]" style={{ color: 'var(--text-secondary)' }}>
+        <span className="text-sm min-w-[90px] max-sm:min-w-0" style={{ color: 'var(--text-secondary)' }}>
           {label}
         </span>
       )}
@@ -53,7 +53,7 @@ export function ColorPicker({ value, onChange, label }: ColorPickerProps) {
             e.target.value = value;
           }
         }}
-        className="w-24 rounded-md border px-2 py-1 text-sm font-mono"
+        className="w-24 max-sm:w-full rounded-md border px-2 py-1 text-sm font-mono"
         style={{
           backgroundColor: 'var(--bg-input)',
           borderColor: 'var(--border-default)',

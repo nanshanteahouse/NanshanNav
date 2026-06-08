@@ -83,7 +83,7 @@ export function ColorThemeEditor({ open, onClose }: ColorThemeEditorProps) {
       </div>
 
       {/* Color fields */}
-      <div className="flex flex-col gap-2.5 max-h-[50vh] overflow-y-auto pr-1 scrollbar-thin">
+      <div className="flex flex-col gap-2.5 max-h-[50vh] max-sm:max-h-[40vh] overflow-y-auto pr-1 scrollbar-thin">
         {COLOR_FIELDS.map(({ key, i18nKey }) => (
           <ColorPicker
             key={key}
@@ -95,7 +95,7 @@ export function ColorThemeEditor({ open, onClose }: ColorThemeEditorProps) {
       </div>
 
       {/* Reset and close buttons */}
-      <div className="mt-5 flex gap-2 pt-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
+      <div className="mt-5 flex gap-2 max-sm:flex-col pt-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
         <button
           type="button"
           onClick={resetToDefaults}

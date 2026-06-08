@@ -36,6 +36,7 @@ function safeDiv(a: number, b: number): number {
 
 export function DashboardCanvas() {
   const { width, containerRef, mounted } = useContainerWidth();
+  const isTouchDevice = window.matchMedia('(hover: none)').matches;
   const dropPositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const { t } = useTranslation();
 
@@ -50,6 +51,7 @@ export function DashboardCanvas() {
   const addWidget = useDashboardStore((s) => s.addWidget);
 
   const bp = useMemo(() => getBreakpoint(width), [width]);
+  const MAX_COLS: Record<string, number> = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
 
   const handleLayoutChange = useCallback(
     (layout: Layout) => {
@@ -59,7 +61,7 @@ export function DashboardCanvas() {
           i: item.i,
           x: item.x,
           y: item.y,
-          w: item.w,
+          w: Math.min(item.w, MAX_COLS[bp]),
           h: item.h,
           minW: item.minW,
           minH: item.minH,
@@ -120,7 +122,7 @@ export function DashboardCanvas() {
         i: id,
         x: pos.x,
         y: pos.y,
-        w: def.defaultSize.w,
+        w: Math.min(def.defaultSize.w, MAX_COLS[bp]),
         h: def.defaultSize.h,
         minW: def.minSize?.w,
         minH: def.minSize?.h,
@@ -266,10 +268,10 @@ export function DashboardCanvas() {
         containerPadding={[PADDING, PADDING] as [number, number]}
         onLayoutChange={handleLayoutChange}
         dragConfig={{
-          enabled: editMode,
+          enabled: editMode && !isTouchDevice,
         }}
         resizeConfig={{
-          enabled: editMode,
+          enabled: editMode && !isTouchDevice,
         }}
       >
         {gridItems}

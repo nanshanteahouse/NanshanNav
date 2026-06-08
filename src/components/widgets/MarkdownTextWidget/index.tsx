@@ -110,6 +110,9 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
           border-collapse: collapse;
           width: 100%;
           margin: 1em 0;
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
         }
         .prose th, .prose td {
           border: 1px solid var(--border-default);

@@ -36,7 +36,7 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
       <div
         data-widget-type={widget.type}
         data-widget-id={widget.id}
-        className="widget-body h-full scrollbar-thin"
+        className="widget-body h-full scrollbar-thin border border-transparent"
       >
         {children}
       </div>
@@ -49,8 +49,23 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
       data-widget-id={widget.id}
       className="group relative flex flex-col h-full rounded-[var(--radius-default)] bg-[var(--bg-widget)] shadow-[var(--shadow-widget)] border border-[var(--border-default)] overflow-hidden"
     >
+      <style>{`
+  @media (hover: hover) {
+    :where(.edit-controls) {
+      opacity: 0;
+    }
+    :where(.group):hover .edit-controls {
+      opacity: 1;
+    }
+  }
+  @media (hover: none) {
+    :where(.edit-controls) {
+      opacity: 0.7;
+    }
+  }
+`}</style>
       <div
-        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+        className="edit-controls absolute top-2 right-2 z-10 transition-opacity duration-200 pointer-events-none"
         aria-label={t('widgetShell.editControls', { title: displayTitle })}
       >
         <div className="flex items-center gap-0.5 p-1 rounded-lg bg-[var(--bg-widget-hover)]/90 backdrop-blur-sm border border-[var(--border-default)] shadow-md pointer-events-auto">

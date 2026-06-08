@@ -1,6 +1,7 @@
 import { PanelLeft } from 'lucide-react';
 import { useDashboardStore } from '@/store/index';
 import { useTranslation } from '@/i18n';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 /**
  * A narrow hover-to-expand trigger strip on the left edge of the canvas.
@@ -11,21 +12,39 @@ import { useTranslation } from '@/i18n';
  * - Hover: expands to 28px, shows PanelLeft icon, reveals right border for separation
  * - Click: opens the widget library sidebar
  * - VS Code-style spatial proximity: the trigger lives on the same edge as the sidebar it opens
+ *
+ * On mobile (≤768px): always shown as a fixed w-8 button with PanelLeft icon always visible.
  */
 export function SidebarTrigger() {
   const editMode = useDashboardStore((s) => s.editMode);
   const sidebarOpen = useDashboardStore((s) => s.sidebarOpen);
   const setSidebarOpen = useDashboardStore((s) => s.setSidebarOpen);
   const { t } = useTranslation();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
-  if (!editMode || sidebarOpen) return null;
+  if (!editMode) return null;
+  if (!isMobile && sidebarOpen) return null;
 
-  return (
-    <button
-      onClick={() => setSidebarOpen(true)}
-      className="group relative w-4 hover:w-7 shrink-0 cursor-pointer transition-all duration-200 flex items-center justify-center border-r border-[var(--accent-primary)]/25 hover:border-[var(--accent-primary)]/40"
-      aria-label={t('sidebar.open')}
-    >
+  if (isMobile) {
+    return (
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="group fixed left-0 top-1/2 -translate-y-1/2 z-50 w-8 h-12 flex items-center justify-center cursor-pointer transition-all duration-200 border-r border-[var(--accent-primary)]/40 bg-[var(--bg-secondary)]/90 shadow-md"
+        aria-label={t('sidebar.open')}
+          title={t('sidebar.open')}
+        >
+          <PanelLeft className="h-4 w-4 text-[var(--text-muted)]" />
+        </button>
+      );
+    }
+
+    return (
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="group relative w-4 hover:w-7 shrink-0 cursor-pointer transition-all duration-200 flex items-center justify-center border-r border-[var(--accent-primary)]/25 hover:border-[var(--accent-primary)]/40"
+        aria-label={t('sidebar.open')}
+        title={t('sidebar.open')}
+      >
       {/* always-visible strip background — must contrast with body bg-primary */}
       <div className="absolute inset-0 bg-[var(--bg-secondary)]/85 group-hover:bg-[var(--bg-secondary)] transition-colors duration-200" />
       {/* grip indicator bar — always visible, fades on hover */}

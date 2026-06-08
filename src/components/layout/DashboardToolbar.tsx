@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { PanelLeft, PanelLeftClose, Palette } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { PanelLeft, PanelLeftClose, Palette, MoreHorizontal } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { EditModeToggle } from '@/components/common/EditModeToggle';
 import { CellSizeSlider } from '@/components/common/CellSizeSlider';
@@ -20,10 +20,27 @@ export function DashboardToolbar() {
   const toggleSidebar = useDashboardStore((s) => s.toggleSidebar);
   const { t } = useTranslation();
   const [colorEditorOpen, setColorEditorOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile menu on click-outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    }
+    if (mobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center justify-between px-8 py-5 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-[var(--shadow-sm)]"
+      className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-8 py-3 sm:py-5 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-[var(--shadow-sm)]"
       role="toolbar"
       aria-label={t('dashboard.toolbar')}
     >
@@ -40,7 +57,8 @@ export function DashboardToolbar() {
           </h1>
         )}
       </div>
-      <div className="flex items-center gap-2">
+      {/* Desktop buttons - hidden on small screens */}
+      <div className="hidden sm:flex items-center gap-2">
         <ThemeToggle />
         <LanguageSelect />
         {editMode && (
@@ -49,6 +67,7 @@ export function DashboardToolbar() {
             size="icon"
             onClick={toggleSidebar}
             aria-label={t('toolbar.toggleWidgetPanel')}
+            title={t('toolbar.toggleWidgetPanel')}
           >
             {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
           </Button>
@@ -69,6 +88,66 @@ export function DashboardToolbar() {
         <ExportImportButtons />
         <EditModeToggle />
       </div>
+      {/* Mobile hamburger */}
+      <div className="sm:hidden flex items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          aria-label={t('toolbar.moreOptions')}
+          title={t('toolbar.moreOptions')}
+        >
+          <MoreHorizontal className="h-5 w-5" />
+        </Button>
+      </div>
+      {/* Mobile dropdown */}
+      {mobileMenuOpen && (
+        <div
+          ref={mobileMenuRef}
+          className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-xl p-2 space-y-1 sm:hidden"
+        >
+          <div className="flex flex-col gap-1">
+            <ThemeToggle />
+            <LanguageSelect />
+            {editMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  toggleSidebar();
+                  setMobileMenuOpen(false);
+                }}
+                aria-label={t('toolbar.toggleWidgetPanel')}
+                title={t('toolbar.toggleWidgetPanel')}
+                className="justify-start gap-2"
+              >
+                {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+                <span>{sidebarOpen ? t('toolbar.closeWidgetPanel') : t('toolbar.openWidgetPanel')}</span>
+              </Button>
+            )}
+            <GridLinesToggle />
+            <CellSizeSlider />
+            {editMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setColorEditorOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                aria-label={t('toolbar.colorPalette')}
+                title={t('toolbar.colorPalette')}
+                className="justify-start gap-2"
+              >
+                <Palette className="h-4 w-4" />
+                <span>{t('toolbar.colorPalette')}</span>
+              </Button>
+            )}
+            <ExportImportButtons />
+            <EditModeToggle />
+          </div>
+        </div>
+      )}
       {editMode && (
         <ColorThemeEditor open={colorEditorOpen} onClose={() => setColorEditorOpen(false)} />
       )}

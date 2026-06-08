@@ -27,7 +27,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
   const [engine, setEngine] = useState<string>(opts.defaultEngine);
   const [isFocused, setIsFocused] = useState(false);
   const [showEngineMenu, setShowEngineMenu] = useState(false);
-  const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [suggestionsRect, setSuggestionsRect] = useState<DOMRect | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const engineBtnRef = useRef<HTMLButtonElement>(null);
@@ -97,7 +97,21 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
 
   const handleToggleEngineMenu = () => {
     if (!showEngineMenu && engineBtnRef.current) {
-      setMenuRect(engineBtnRef.current.getBoundingClientRect());
+      const rect = engineBtnRef.current.getBoundingClientRect();
+
+      const menuWidth = 144; // w-36 = 9rem = 144px
+      const estimatedMenuHeight = engines.length * 36 + 8;
+      let left = rect.left;
+      let top = rect.bottom + 4;
+
+      if (left + menuWidth > window.innerWidth) {
+        left = window.innerWidth - menuWidth - 8;
+      }
+      if (top + estimatedMenuHeight > window.innerHeight) {
+        top = rect.top - estimatedMenuHeight - 4;
+      }
+
+      setMenuPosition({ top, left });
     }
     setShowEngineMenu(!showEngineMenu);
   };
@@ -197,13 +211,13 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
         )}
       </div>
 
-      {showEngineMenu && menuRect &&
+      {showEngineMenu && menuPosition &&
         createPortal(
           <div
             className="search-engine-menu fixed z-[9999] w-36 rounded-lg border py-1 shadow-lg"
             style={{
-              top: menuRect.bottom + 4,
-              left: menuRect.left,
+              top: menuPosition.top,
+              left: menuPosition.left,
               backgroundColor: 'var(--bg-widget)',
               borderColor: 'var(--border-default)',
             }}

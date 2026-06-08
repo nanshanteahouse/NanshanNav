@@ -11,6 +11,8 @@ export function CellSizeSlider() {
   const updateSettings = useDashboardStore((s) => s.updateSettings);
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [alignLeft, setAlignLeft] = useState(false);
+  const [alignTop, setAlignTop] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,12 +37,22 @@ export function CellSizeSlider() {
         size="icon"
         aria-label={t('toolbar.rowHeight')}
         title={t('toolbar.rowHeight')}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          const nextOpen = !open;
+          if (nextOpen && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            // Check right overflow: container right edge + 192px popover width > viewport width
+            setAlignLeft(rect.right + 192 > window.innerWidth);
+            // Check bottom overflow: container bottom + ~200px popover height > viewport height
+            setAlignTop(rect.bottom + 200 > window.innerHeight);
+          }
+          setOpen(nextOpen);
+        }}
       >
         <SlidersHorizontal className="h-4 w-4" />
       </Button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 w-48 p-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-widget)] shadow-[var(--shadow-md)]">
+        <div className={`absolute ${alignLeft ? 'left-0' : 'right-0'} ${alignTop ? 'bottom-full mb-1' : 'top-full mt-1'} z-50 w-48 p-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-widget)] shadow-[var(--shadow-md)]`}>
           <label className="block text-xs text-[var(--text-secondary)] mb-2">
             {t('toolbar.rowLabel', { px: rowHeight })}
           </label>
