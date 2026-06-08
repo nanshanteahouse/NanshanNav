@@ -9,7 +9,7 @@ export function AppLayout() {
   const editMode = useDashboardStore((s) => s.editMode);
   const sidebarOpen = useDashboardStore((s) => s.sidebarOpen);
   const setSidebarOpen = useDashboardStore((s) => s.setSidebarOpen);
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery('(max-width: 767px)');
   useKeyboardShortcut();
 
   return (
