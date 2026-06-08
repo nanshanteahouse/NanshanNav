@@ -1,4 +1,6 @@
 import { useCallback, useRef, useMemo, useEffect } from 'react';
+import { useServerSync } from '@/hooks/useServerSync';
+import type { AuthState } from '@/hooks/useServerSync';
 import { Responsive, useContainerWidth } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -49,6 +51,7 @@ export function DashboardCanvas() {
   const setEditMode = useDashboardStore((s) => s.setEditMode);
   const setSidebarOpen = useDashboardStore((s) => s.setSidebarOpen);
   const addWidget = useDashboardStore((s) => s.addWidget);
+  const { authState } = useServerSync();
 
   const bp = useMemo(() => getBreakpoint(width), [width]);
   const MAX_COLS: Record<string, number> = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
@@ -226,26 +229,60 @@ export function DashboardCanvas() {
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        <div className="text-center space-y-4 max-w-sm">
-          <div className="text-5xl" aria-hidden="true">🏠</div>
-          <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-            {t('dashboard.emptyTitle')}
-          </h2>
-          <p className="text-sm text-[var(--text-secondary)]">
-            {t('dashboard.emptyDescription')}
-          </p>
-          <Button
-            variant="default"
-            size="default"
-            aria-label={t('dashboard.startEditing')}
-            onClick={() => {
-              setEditMode(true);
-              setSidebarOpen(true);
-            }}
-          >
-            {t('dashboard.startEditing')}
-          </Button>
-        </div>
+        {authState === 'unauthenticated' ? (
+          <div className="text-center space-y-4 max-w-sm">
+            <div className="text-5xl" aria-hidden="true">🏠</div>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+              {t('dashboard.emptyTitle')}
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)]">
+              登录后可加载已保存的面板配置
+            </p>
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => { window.location.href = '/admin'; }}
+            >
+              登录加载配置
+            </Button>
+            <p className="text-xs text-[var(--text-muted)]">
+              或{' '}
+              <button
+                type="button"
+                className="underline cursor-pointer"
+                style={{ color: 'var(--accent-primary)' }}
+                onClick={() => {
+                  setEditMode(true);
+                  setSidebarOpen(true);
+                }}
+              >
+                开始编辑
+              </button>
+              {' '}全新配置
+            </p>
+          </div>
+        ) : (
+          <div className="text-center space-y-4 max-w-sm">
+            <div className="text-5xl" aria-hidden="true">🏠</div>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+              {t('dashboard.emptyTitle')}
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)]">
+              {t('dashboard.emptyDescription')}
+            </p>
+            <Button
+              variant="default"
+              size="default"
+              aria-label={t('dashboard.startEditing')}
+              onClick={() => {
+                setEditMode(true);
+                setSidebarOpen(true);
+              }}
+            >
+              {t('dashboard.startEditing')}
+            </Button>
+          </div>
+        )}
       </div>
     );
   }

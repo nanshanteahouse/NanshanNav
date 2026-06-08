@@ -1,7 +1,10 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useDashboardStore } from '@/store';
 
+export type AuthState = 'loading' | 'authenticated' | 'unauthenticated';
+
 export function useServerSync() {
+  const [authState, setAuthState] = useState<AuthState>('loading');
   const settings = useDashboardStore((s) => s.settings);
   const layouts = useDashboardStore((s) => s.layouts);
   const widgets = useDashboardStore((s) => s.widgets);
@@ -9,9 +12,21 @@ export function useServerSync() {
   // On mount, try to load saved config from server
   useEffect(() => {
     fetch('/api/dashboard')
-      .then((r) => {
-        if (!r.ok) return null;
-        return r.json();
+      .then(async (r) => {
+        if (r.status === 404) {
+          setAuthState('authenticated');
+          return null;
+        }
+        const text = await r.text();
+        try {
+          const data = JSON.parse(text);
+          setAuthState('authenticated');
+          return data;
+        } catch {
+          // Response is not JSON — likely Authelia login page (HTML)
+          setAuthState('unauthenticated');
+          return null;
+        }
       })
       .then((data) => {
         if (!data?.settings) return;
@@ -21,7 +36,7 @@ export function useServerSync() {
         store.setWidgets(data.widgets);
       })
       .catch(() => {
-        // Silent — offline or unauthenticated user keeps localStorage state
+        setAuthState('unauthenticated');
       });
   }, []);
 
@@ -39,5 +54,5 @@ export function useServerSync() {
     }
   }, [settings, layouts, widgets]);
 
-  return { saveToServer };
+  return { saveToServer, authState };
 }
