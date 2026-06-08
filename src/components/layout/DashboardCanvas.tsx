@@ -1,6 +1,5 @@
 import { useCallback, useRef, useMemo, useEffect } from 'react';
 import { useServerSync } from '@/hooks/useServerSync';
-import type { AuthState } from '@/hooks/useServerSync';
 import { Responsive, useContainerWidth } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
