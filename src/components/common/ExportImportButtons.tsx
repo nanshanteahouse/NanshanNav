@@ -70,7 +70,7 @@ export function ExportImportButtons() {
         title={t('toolbar.exportConfig')}
         onClick={handleExport}
       >
-        <Download className="h-4 w-4" />
+        <Upload className="h-4 w-4" />
       </Button>
       <Button
         variant="ghost"
@@ -79,7 +79,7 @@ export function ExportImportButtons() {
         title={t('toolbar.importConfig')}
         onClick={() => fileInputRef.current?.click()}
       >
-        <Upload className="h-4 w-4" />
+        <Download className="h-4 w-4" />
       </Button>
       <input
         ref={fileInputRef}
