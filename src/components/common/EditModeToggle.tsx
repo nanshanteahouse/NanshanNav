@@ -4,7 +4,7 @@ import { useDashboardStore } from '@/store/index';
 import { useTranslation } from '@/i18n';
 import { useServerSync } from '@/hooks/useServerSync';
 
-export function EditModeToggle() {
+export function EditModeToggle({ showLabel = false }: { showLabel?: boolean }) {
   const editMode = useDashboardStore((s) => s.editMode);
   const toggleEditMode = useDashboardStore((s) => s.toggleEditMode);
   const setSidebarOpen = useDashboardStore((s) => s.setSidebarOpen);
@@ -30,25 +30,27 @@ export function EditModeToggle() {
     return (
       <Button
         variant="default"
-        size="sm"
+        size={showLabel ? 'sm' : 'icon'}
         aria-label={t('toolbar.exitEditMode')}
+        title={t('toolbar.exitEditMode')}
         onClick={handleToggle}
       >
         <Save className="h-4 w-4" />
-        {t('toolbar.saveExit')}
+        {showLabel && t('toolbar.saveExit')}
       </Button>
     );
   }
 
   return (
     <Button
-      variant="outline"
-      size="sm"
+      variant={showLabel ? 'outline' : 'ghost'}
+      size={showLabel ? 'sm' : 'icon'}
       aria-label={t('toolbar.enterEditMode')}
+      title={t('toolbar.enterEditMode')}
       onClick={handleToggle}
     >
       <Pencil className="h-4 w-4" />
-      {t('toolbar.editBtn')}
+      {showLabel && t('toolbar.editBtn')}
     </Button>
   );
 }

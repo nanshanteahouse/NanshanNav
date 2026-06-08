@@ -144,7 +144,7 @@ export function DashboardToolbar() {
               </Button>
             )}
             <ExportImportButtons />
-            <EditModeToggle />
+            <EditModeToggle showLabel />
           </div>
         </div>
       )}
