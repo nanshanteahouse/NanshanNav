@@ -1,6 +1,5 @@
 import { DashboardToolbar } from '@/components/layout/DashboardToolbar';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { SidebarTrigger } from '@/components/layout/SidebarTrigger';
 import { DashboardCanvas } from '@/components/layout/DashboardCanvas';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { useDashboardStore } from '@/store/index';
@@ -28,7 +27,6 @@ export function AppLayout() {
       )}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <SidebarTrigger />
         <DashboardCanvas />
       </div>
     </div>

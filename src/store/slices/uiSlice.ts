@@ -12,7 +12,7 @@ export interface UiSlice {
 export const createUiSlice: StateCreator<UiSlice, [], []> = (set) => ({
   editMode: false,
   sidebarOpen: false,
-  setEditMode: (mode) => set({ editMode: mode }),
+  setEditMode: (mode) => set({ editMode: mode, sidebarOpen: mode }),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   toggleEditMode: () => set((state) => ({ editMode: !state.editMode })),
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),

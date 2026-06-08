@@ -38,21 +38,37 @@ export function DashboardToolbar() {
     };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    if (!editMode) setMobileMenuOpen(false);
+  }, [editMode]);
+
   return (
     <header
       className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-8 py-3 sm:py-5 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-[var(--shadow-sm)]"
       role="toolbar"
       aria-label={t('dashboard.toolbar')}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1 sm:gap-3 min-w-0">
+        {editMode && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            aria-label={t('toolbar.toggleWidgetPanel')}
+            title={t('toolbar.toggleWidgetPanel')}
+            className="shrink-0"
+          >
+            {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+          </Button>
+        )}
         {editMode ? (
           <Input
             value={dashboardTitle}
             onChange={(e) => updateSettings({ dashboardTitle: e.target.value })}
-            className="min-w-0 text-xl font-semibold border-0 bg-transparent px-0 py-0 h-auto text-[var(--text-primary)]"
+            className="min-w-0 text-xl font-semibold border-0 bg-transparent px-0 py-0 h-auto text-[var(--text-primary)] truncate"
           />
         ) : (
-          <h1 className="text-xl font-semibold text-[var(--text-primary)] tracking-tight">
+          <h1 className="text-xl font-semibold text-[var(--text-primary)] tracking-tight truncate">
             {dashboardTitle}
           </h1>
         )}
@@ -61,17 +77,6 @@ export function DashboardToolbar() {
       <div className="hidden sm:flex items-center gap-2">
         <ThemeToggle />
         <LanguageSelect />
-        {editMode && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            aria-label={t('toolbar.toggleWidgetPanel')}
-            title={t('toolbar.toggleWidgetPanel')}
-          >
-            {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-          </Button>
-        )}
         <GridLinesToggle />
         <CellSizeSlider />
         {editMode && (
@@ -109,22 +114,6 @@ export function DashboardToolbar() {
           <div className="flex flex-col gap-1">
             <ThemeToggle />
             <LanguageSelect />
-            {editMode && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  toggleSidebar();
-                  setMobileMenuOpen(false);
-                }}
-                aria-label={t('toolbar.toggleWidgetPanel')}
-                title={t('toolbar.toggleWidgetPanel')}
-                className="justify-start gap-2"
-              >
-                {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-                <span>{sidebarOpen ? t('toolbar.closeWidgetPanel') : t('toolbar.openWidgetPanel')}</span>
-              </Button>
-            )}
             <GridLinesToggle />
             <CellSizeSlider />
             {editMode && (
