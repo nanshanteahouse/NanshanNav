@@ -5,7 +5,7 @@ import { CELL_SIZE_MIN, CELL_SIZE_MAX } from '@/lib/constants';
 import { useTranslation } from '@/i18n';
 import { Button } from '@/components/ui/button';
 
-export function CellSizeSlider() {
+export function CellSizeSlider({ showLabel = false }: { showLabel?: boolean }) {
   const editMode = useDashboardStore((s) => s.editMode);
   const rowHeight = useDashboardStore((s) => s.settings.cellSize);
   const updateSettings = useDashboardStore((s) => s.updateSettings);
@@ -34,7 +34,7 @@ export function CellSizeSlider() {
     <div ref={containerRef} className="relative">
       <Button
         variant="ghost"
-        size="icon"
+        size={showLabel ? 'sm' : 'icon'}
         aria-label={t('toolbar.rowHeight')}
         title={t('toolbar.rowHeight')}
         onClick={() => {
@@ -48,8 +48,10 @@ export function CellSizeSlider() {
           }
           setOpen(nextOpen);
         }}
+        className={showLabel ? 'justify-start gap-2' : ''}
       >
         <SlidersHorizontal className="h-4 w-4" />
+        {showLabel && <span>{t('toolbar.cellSize')}</span>}
       </Button>
       {open && (
         <div className={`absolute ${alignLeft ? 'left-0' : 'right-0'} ${alignTop ? 'bottom-full mb-1' : 'top-full mt-1'} z-50 w-48 p-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-widget)] shadow-[var(--shadow-md)]`}>

@@ -4,7 +4,7 @@ import { useDashboardStore } from '@/store/index';
 import { useTranslation } from '@/i18n';
 import type { ThemeMode } from '@/types/dashboard';
 
-export function ThemeToggle() {
+export function ThemeToggle({ showLabel = false }: { showLabel?: boolean }) {
   const setThemeMode = useDashboardStore((s) => s.setThemeMode);
   const themeMode = useDashboardStore((s) => s.settings.themeMode);
   const { t } = useTranslation();
@@ -25,12 +25,14 @@ export function ThemeToggle() {
   return (
     <Button
       variant="ghost"
-      size="icon"
+      size={showLabel ? 'sm' : 'icon'}
       onClick={() => setThemeMode(nextMode[themeMode])}
       aria-label={label}
       title={label}
+      className={showLabel ? 'justify-start gap-2' : ''}
     >
       {icon}
+      {showLabel && <span>{label}</span>}
     </Button>
   );
 }

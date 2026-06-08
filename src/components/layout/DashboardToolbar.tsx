@@ -112,10 +112,10 @@ export function DashboardToolbar() {
           className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-xl p-2 space-y-1 sm:hidden"
         >
           <div className="flex flex-col gap-1">
-            <ThemeToggle />
+            <ThemeToggle showLabel />
             <LanguageSelect />
-            <GridLinesToggle />
-            <CellSizeSlider />
+            <GridLinesToggle showLabel />
+            <CellSizeSlider showLabel />
             {editMode && (
               <Button
                 variant="ghost"
@@ -126,13 +126,13 @@ export function DashboardToolbar() {
                 }}
                 aria-label={t('toolbar.colorPalette')}
                 title={t('toolbar.colorPalette')}
-                className="justify-start gap-2"
+                className="justify-start gap-2 w-full"
               >
                 <Palette className="h-4 w-4" />
                 <span>{t('toolbar.colorPalette')}</span>
               </Button>
             )}
-            <ExportImportButtons />
+            <ExportImportButtons showLabel />
             <EditModeToggle showLabel />
           </div>
         </div>

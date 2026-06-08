@@ -4,7 +4,7 @@ import { useDashboardStore } from '@/store/index';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n';
 
-export function ExportImportButtons() {
+export function ExportImportButtons({ showLabel = false }: { showLabel?: boolean }) {
   const editMode = useDashboardStore((s) => s.editMode);
   const settings = useDashboardStore((s) => s.settings);
   const layouts = useDashboardStore((s) => s.layouts);
@@ -61,25 +61,31 @@ export function ExportImportButtons() {
 
   if (!editMode) return null;
 
+  const btnClass = showLabel ? 'justify-start gap-2' : '';
+
   return (
     <>
       <Button
         variant="ghost"
-        size="icon"
+        size={showLabel ? 'sm' : 'icon'}
         aria-label={t('toolbar.exportConfig')}
         title={t('toolbar.exportConfig')}
         onClick={handleExport}
+        className={btnClass}
       >
         <Upload className="h-4 w-4" />
+        {showLabel && <span>{t('toolbar.exportConfig')}</span>}
       </Button>
       <Button
         variant="ghost"
-        size="icon"
+        size={showLabel ? 'sm' : 'icon'}
         aria-label={t('toolbar.importConfig')}
         title={t('toolbar.importConfig')}
         onClick={() => fileInputRef.current?.click()}
+        className={btnClass}
       >
         <Download className="h-4 w-4" />
+        {showLabel && <span>{t('toolbar.importConfig')}</span>}
       </Button>
       <input
         ref={fileInputRef}
