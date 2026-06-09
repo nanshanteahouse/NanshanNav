@@ -83,6 +83,7 @@ const zhCN: TranslationSchema = {
       showUrl: '显示 URL',
       showDescription: '显示描述',
       addLink: '添加链接',
+      dragToReorder: '拖拽排序',
     },
     webPage: {
       name: '网页',

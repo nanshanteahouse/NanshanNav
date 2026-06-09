@@ -81,6 +81,7 @@ export interface TranslationSchema {
       showUrl: string;
       showDescription: string;
       addLink: string;
+      dragToReorder: string;
     };
     webPage: {
       name: string;

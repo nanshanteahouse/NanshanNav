@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2 } from 'lucide-react';
 import { IconPicker } from '@/components/ui/icon-picker';
+import { useTranslation } from '@/i18n';
 import type { LinkItem, IconSource } from '@/types/widget';
 
 interface SortableLinkItemProps {
@@ -20,6 +21,7 @@ export default function SortableLinkItem({ link, index, onUpdate, onRemove }: So
     transition,
     isDragging,
   } = useSortable({ id: link.id });
+  const { t } = useTranslation();
 
   return (
     <div
@@ -42,7 +44,7 @@ export default function SortableLinkItem({ link, index, onUpdate, onRemove }: So
             className="cursor-grab p-0.5 rounded hover:bg-[var(--bg-widget-hover)]"
             {...attributes}
             {...listeners}
-            aria-label="Drag to reorder"
+            aria-label={t('widget.webLink.dragToReorder')}
             tabIndex={0}
           >
             <GripVertical className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />

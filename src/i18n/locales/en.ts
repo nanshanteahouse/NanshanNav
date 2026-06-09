@@ -83,6 +83,7 @@ const en: TranslationSchema = {
       showUrl: 'Show URL',
       showDescription: 'Show Description',
       addLink: 'Add Link',
+      dragToReorder: 'Drag to reorder',
     },
     webPage: {
       name: 'Web Page',
