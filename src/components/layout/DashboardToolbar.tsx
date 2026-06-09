@@ -18,6 +18,8 @@ export function DashboardToolbar() {
   const sidebarOpen = useDashboardStore((s) => s.sidebarOpen);
   const updateSettings = useDashboardStore((s) => s.updateSettings);
   const toggleSidebar = useDashboardStore((s) => s.toggleSidebar);
+  const glassEnabled = useDashboardStore((s) => s.settings.glassEnabled);
+  const glassBlur = useDashboardStore((s) => s.settings.glassBlur);
   const { t } = useTranslation();
   const [colorEditorOpen, setColorEditorOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -45,6 +47,12 @@ export function DashboardToolbar() {
   return (
     <header
       className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-8 py-3 sm:py-5 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-[var(--shadow-sm)]"
+      style={glassEnabled ? {
+        backdropFilter: `blur(${glassBlur}px)`,
+        WebkitBackdropFilter: `blur(${glassBlur}px)`,
+        backgroundColor: 'color-mix(in srgb, var(--bg-secondary) 70%, transparent)',
+        willChange: 'backdrop-filter',
+      } : undefined}
       role="toolbar"
       aria-label={t('dashboard.toolbar')}
     >

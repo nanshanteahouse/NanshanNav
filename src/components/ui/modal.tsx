@@ -7,9 +7,11 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  glassEnabled?: boolean;
+  glassBlur?: number;
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, glassEnabled = false, glassBlur = 10 }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,13 +56,22 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     >
       <div
         className="relative w-full max-w-2xl max-sm:max-w-[calc(100%-1rem)] rounded-lg p-8 max-sm:p-4 shadow-lg modal-body scrollbar-thin"
-        style={{
-          backgroundColor: 'var(--bg-widget)',
-          border: '1px solid var(--border-default)',
-          maxHeight: '90vh',
-          overflow: 'auto',
-          marginBottom: 'env(safe-area-inset-bottom, 0px)',
-        }}
+        style={(() => {
+          const style: React.CSSProperties = {
+            backgroundColor: glassEnabled
+              ? 'color-mix(in srgb, var(--bg-widget) 70%, transparent)'
+              : 'var(--bg-widget)',
+            border: '1px solid var(--border-default)',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            marginBottom: 'env(safe-area-inset-bottom, 0px)',
+          };
+          if (glassEnabled) {
+            style.backdropFilter = `blur(${glassBlur}px)`;
+            style.WebkitBackdropFilter = `blur(${glassBlur}px)`;
+          }
+          return style;
+        })()}
       >
         <div className="mb-4 flex items-center justify-between">
           <h2
