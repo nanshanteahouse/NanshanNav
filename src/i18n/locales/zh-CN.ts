@@ -235,6 +235,9 @@ const zhCN: TranslationSchema = {
     statusWarning: '警告状态',
     accentPrimary: '强调色',
     accentPrimaryHover: '强调色悬停',
+    glassSection: '玻璃效果',
+    glassEnabled: '毛玻璃效果',
+    glassBlur: '模糊强度',
   },
 };
 

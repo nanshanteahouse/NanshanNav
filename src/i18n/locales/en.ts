@@ -235,6 +235,9 @@ const en: TranslationSchema = {
     statusWarning: 'Warning Status',
     accentPrimary: 'Accent',
     accentPrimaryHover: 'Accent Hover',
+    glassSection: 'Glass Effect',
+    glassEnabled: 'Frosted Glass',
+    glassBlur: 'Blur Intensity',
   },
 };
 

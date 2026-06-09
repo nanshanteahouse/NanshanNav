@@ -70,6 +70,8 @@ export interface DashboardSettings {
   dashboardTitle: string;
   showGridLines: boolean;
   colors?: ColorConfig;
+  glassEnabled?: boolean;
+  glassBlur?: number;
 }
 
 export const DEFAULT_SETTINGS: DashboardSettings = {
@@ -79,4 +81,6 @@ export const DEFAULT_SETTINGS: DashboardSettings = {
   dashboardTitle: 'NanshanNav',
   showGridLines: false,
   colors: DEFAULT_COLORS,
+  glassEnabled: false,
+  glassBlur: 10,
 };

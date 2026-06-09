@@ -233,5 +233,8 @@ export interface TranslationSchema {
     statusWarning: string;
     accentPrimary: string;
     accentPrimaryHover: string;
+    glassSection: string;
+    glassEnabled: string;
+    glassBlur: string;
   };
 }

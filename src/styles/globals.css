@@ -23,6 +23,8 @@
   --shadow-widget: 0 1px 3px rgba(0, 0, 0, 0.08);
   --radius-default: 12px;
   --transition-fast: 150ms ease;
+  --glass-blur: 0px;
+  --glass-bg: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
 }
 
 [data-theme="dark"] {
@@ -45,6 +47,7 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
   --shadow-widget: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --glass-bg: color-mix(in srgb, var(--bg-secondary) 75%, transparent);
 }
 
 html {
@@ -74,4 +77,21 @@ textarea {
 
 #root {
   min-height: 100vh;
+}
+
+@supports (backdrop-filter: blur()) {
+  .glass-backdrop {
+    backdrop-filter: blur(var(--glass-blur, 10px));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 10px));
+  }
+  .glass-surface {
+    background-color: var(--glass-bg);
+  }
+}
+
+@supports not (backdrop-filter: blur()) {
+  .glass-backdrop,
+  .glass-surface {
+    background-color: var(--bg-secondary);
+  }
 }
