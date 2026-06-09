@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import type { WidgetSettingsProps, WebLinkOptions, LinkItem, IconSource } from '@/types/widget.ts';
+import type { WidgetSettingsProps, WebLinkOptions, LinkItem } from '@/types/widget.ts';
 import { generateId } from '@/lib/utils/generate-id.ts';
-import { IconPicker } from '@/components/ui/icon-picker';
-import { Trash2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { DndContext, PointerSensor, useSensor, useSensors, closestCenter, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { arrayMove } from '@/lib/utils/arrayMove';
+import SortableLinkItem from './SortableLinkItem';
 
 export default function WebLinkSettings({ widgetId: _widgetId, options, onChange }: WidgetSettingsProps) {
   const opts = options as unknown as WebLinkOptions;
@@ -41,6 +44,18 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
     const next = links.map((link, i) => (i === index ? { ...link, ...patch } : link));
     emitChange(next);
   };
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = links.findIndex(l => l.id === active.id);
+    const newIndex = links.findIndex(l => l.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const newLinks = arrayMove(links, oldIndex, newIndex);
+    emitChange(newLinks);
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -143,138 +158,22 @@ export default function WebLinkSettings({ widgetId: _widgetId, options, onChange
           </button>
         </div>
 
-<div className="flex flex-col gap-5">
-          {links.map((link, index) => (
-            <div
-              key={link.id || index}
-              className="rounded-md border p-4"
-              style={{ borderColor: 'var(--border-default)' }}
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-                  Link #{index + 1}
-                </span>
-                <button
-                  type="button"
-                  className="flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors"
-                  style={{ color: 'var(--status-offline)' }}
-                  onClick={() => removeLink(index)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Remove
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <input
-                  type="text"
-                  className="rounded border px-3 py-2 text-sm"
-                  style={{
-                    backgroundColor: 'var(--bg-input)',
-                    borderColor: 'var(--border-default)',
-                    color: 'var(--text-primary)',
-                  }}
-                  placeholder="Name"
-                  value={link.name}
-                  onChange={(e) => updateLink(index, { name: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="rounded border px-3 py-2 text-sm"
-                  style={{
-                    backgroundColor: 'var(--bg-input)',
-                    borderColor: 'var(--border-default)',
-                    color: 'var(--text-primary)',
-                  }}
-                  placeholder="URL (e.g., https://example.com)"
-                  value={link.url}
-                  onChange={(e) => updateLink(index, { url: e.target.value })}
-                />
-                <IconPicker
-                  value={link.icon}
-                  onChange={(iconName) => updateLink(index, { icon: iconName, iconValue: iconName })}
-                  variant="popover"
-                />
-                {/* Icon Source Selector */}
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Icon Source</span>
-                  <select
-                    className="rounded border px-3 py-2 text-sm"
-                    style={{
-                      backgroundColor: 'var(--bg-input)',
-                      borderColor: 'var(--border-default)',
-                      color: 'var(--text-primary)',
-                    }}
-                    value={link.iconSource || 'lucide'}
-                    onChange={(e) => updateLink(index, { iconSource: e.target.value as IconSource })}
-                  >
-                    <option value="favicon">Favicon</option>
-                    <option value="lucide">Lucide Icon</option>
-                    <option value="custom">Custom Upload</option>
-                    <option value="initial">Initial Letter</option>
-                  </select>
-                </div>
-                {/* Custom upload field */}
-                {(link.iconSource || 'lucide') === 'custom' && (
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Custom Icon</span>
-                    {link.iconValue ? (
-                      <div className="flex items-center gap-2">
-                        <img src={link.iconValue} alt="" className="h-6 w-6 object-contain" />
-                        <button
-                          type="button"
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ color: 'var(--status-offline)' }}
-                          onClick={() => updateLink(index, { iconValue: null })}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    ) : (
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="text-xs"
-                        style={{ color: 'var(--text-secondary)' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const formData = new FormData();
-                          formData.append('image', file);
-                          try {
-                            const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                            const data = await res.json();
-                            if (data.url) {
-                              updateLink(index, { iconValue: data.url });
-                            }
-                          } catch { /* ignore */ }
-                        }}
-                      />
-                    )}
-                  </div>
-                )}
-                <input
-                  type="text"
-                  className="rounded border px-3 py-2 text-sm"
-                  style={{
-                    backgroundColor: 'var(--bg-input)',
-                    borderColor: 'var(--border-default)',
-                    color: 'var(--text-primary)',
-                  }}
-                  placeholder="Description"
-                  value={link.description}
-                  onChange={(e) => updateLink(index, { description: e.target.value })}
-                />
-              </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={links.map(l => l.id)} strategy={verticalListSortingStrategy}>
+            <div className="flex flex-col gap-5">
+              {links.map((link, index) => (
+                <SortableLinkItem key={link.id} link={link} index={index}
+                  onUpdate={(patch) => updateLink(index, patch)}
+                  onRemove={() => removeLink(index)} />
+              ))}
+              {links.length === 0 && (
+                <p className="py-2 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                  No links yet. Click &quot;Add Link&quot; to get started.
+                </p>
+              )}
             </div>
-          ))}
-
-          {links.length === 0 && (
-            <p className="py-2 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-              No links yet. Click &quot;Add Link&quot; to get started.
-            </p>
-          )}
-        </div>
+          </SortableContext>
+        </DndContext>
       </div>
     </div>
   );
