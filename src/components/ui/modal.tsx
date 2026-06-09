@@ -41,7 +41,7 @@ export function Modal({ open, onClose, title, children, glassEnabled = false, gl
   // (e.g. react-grid-layout's drag system) to avoid dragging
   // underlying widgets during text selection inside the modal.
   const blockPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    if (e.target === overlayRef.current) e.stopPropagation();
   };
 
   return createPortal(
