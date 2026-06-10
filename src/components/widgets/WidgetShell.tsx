@@ -36,7 +36,7 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
       <div
         data-widget-type={widget.type}
         data-widget-id={widget.id}
-        className="widget-body h-full scrollbar-thin border border-transparent"
+        className="widget-body h-full overflow-hidden scrollbar-thin border border-transparent"
       >
         {children}
       </div>

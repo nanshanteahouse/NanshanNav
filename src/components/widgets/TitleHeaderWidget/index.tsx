@@ -42,7 +42,7 @@ export default function TitleHeaderWidget({ widgetId, options }: WidgetComponent
   );
 
   return (
-    <div className="flex h-full w-full items-center p-4" data-widget-type="title-header">
+    <div className="flex h-full w-full items-start px-4 pt-3 pb-5" data-widget-type="title-header">
       <div className="w-full" style={{ textAlign: opts.textAlign }}>
         {IconComponent ? (
           <div className="flex items-center gap-2" style={{ justifyContent: opts.textAlign === 'center' ? 'center' : `flex-${opts.textAlign === 'right' ? 'end' : 'start'}` }}>
