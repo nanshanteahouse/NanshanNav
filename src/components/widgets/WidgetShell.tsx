@@ -75,6 +75,7 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
             onClick={() => setShowSettings(true)}
             aria-label={t('widgetShell.settings')}
             className="h-7 w-7"
+            style={{ minHeight: 0, minWidth: 0, padding: 0 }}
           >
             <Settings className="h-3.5 w-3.5" />
           </Button>
@@ -84,6 +85,7 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
             onClick={() => removeWidget(widget.id)}
             aria-label={t('widgetShell.delete')}
             className="h-7 w-7 text-[var(--status-offline)] hover:text-[var(--status-offline)]"
+            style={{ minHeight: 0, minWidth: 0, padding: 0 }}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
