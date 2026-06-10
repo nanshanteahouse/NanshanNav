@@ -1,12 +1,23 @@
 import type { ReactNode } from 'react';
 import { useState, useCallback } from 'react';
-import { Settings, Trash2 } from 'lucide-react';
+import { ClipboardPaste, Copy, CopyPlus, Settings, Trash2 } from 'lucide-react';
 import { useDashboardStore } from '@/store/index';
 import { getWidgetDefinition } from '@/registry/index';
+import { BREAKPOINTS } from '@/lib/constants';
+import type { Breakpoint } from '@/lib/constants';
 import type { WidgetConfig } from '@/types/widget';
 import { Button } from '@/components/ui/button';
 import WidgetSettings from '@/components/widgets/WidgetSettings';
 import { useTranslation } from '@/i18n';
+
+function getCurrentBreakpoint(): Breakpoint {
+  const width = window.innerWidth;
+  if (width >= BREAKPOINTS.lg) return 'lg';
+  if (width >= BREAKPOINTS.md) return 'md';
+  if (width >= BREAKPOINTS.sm) return 'sm';
+  if (width >= BREAKPOINTS.xs) return 'xs';
+  return 'xxs';
+}
 
 export interface WidgetShellProps {
   widget: WidgetConfig;
@@ -16,6 +27,7 @@ export interface WidgetShellProps {
 export function WidgetShell({ widget, children }: WidgetShellProps) {
   const isEditMode = useDashboardStore((s) => s.editMode);
   const removeWidget = useDashboardStore((s) => s.removeWidget);
+  const clipboard = useDashboardStore((s) => s.clipboard);
   const [showSettings, setShowSettings] = useState(false);
   const { t } = useTranslation();
 
@@ -72,12 +84,43 @@ export function WidgetShell({ widget, children }: WidgetShellProps) {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => useDashboardStore.getState().copyWidget(widget)}
+            aria-label={t('widgetShell.copy')}
+            className="h-7 w-7"
+            style={{ minHeight: 0, minWidth: 0, padding: 0 }}
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setShowSettings(true)}
             aria-label={t('widgetShell.settings')}
             className="h-7 w-7"
             style={{ minHeight: 0, minWidth: 0, padding: 0 }}
           >
             <Settings className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => useDashboardStore.getState().pasteWidget(getCurrentBreakpoint())}
+            aria-label={t('widgetShell.paste')}
+            className={`h-7 w-7 ${!clipboard ? 'opacity-50 pointer-events-none' : ''}`}
+            style={{ minHeight: 0, minWidth: 0, padding: 0 }}
+            disabled={!clipboard}
+          >
+            <ClipboardPaste className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => useDashboardStore.getState().duplicateWidget(widget.id, getCurrentBreakpoint())}
+            aria-label={t('widgetShell.duplicate')}
+            className="h-7 w-7"
+            style={{ minHeight: 0, minWidth: 0, padding: 0 }}
+          >
+            <CopyPlus className="h-3.5 w-3.5" />
           </Button>
           <Button
             variant="ghost"

@@ -177,6 +177,9 @@ const en: TranslationSchema = {
     settings: 'Widget settings',
     delete: 'Delete widget',
     editControls: 'Edit controls for {title}',
+    copy: 'Copy',
+    paste: 'Paste',
+    duplicate: 'Duplicate',
   },
   settings: {
     configure: 'Configure {title}',
@@ -198,6 +201,8 @@ const en: TranslationSchema = {
     showGridLines: 'Show Grid Lines',
     editMode: 'Edit Mode',
     exportImport: 'Export / Import',
+    undo: 'Undo',
+    redo: 'Redo',
     showGrid: 'Show grid lines',
     hideGrid: 'Hide grid lines',
     exportConfig: 'Export dashboard config',

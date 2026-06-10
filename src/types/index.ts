@@ -39,3 +39,9 @@ export type {
   PveClusterResource,
   PveNodeListItem,
 } from './pve.ts';
+
+export type {
+  Snapshot,
+  HistoryEntry,
+  ClipboardState,
+} from './history.ts';

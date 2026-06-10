@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { PanelLeft, PanelLeftClose, Palette, MoreHorizontal } from 'lucide-react';
+import { PanelLeft, PanelLeftClose, Palette, MoreHorizontal, Undo2, Redo2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { EditModeToggle } from '@/components/common/EditModeToggle';
 import { CellSizeSlider } from '@/components/common/CellSizeSlider';
@@ -20,6 +20,7 @@ export function DashboardToolbar() {
   const toggleSidebar = useDashboardStore((s) => s.toggleSidebar);
   const glassEnabled = useDashboardStore((s) => s.settings.glassEnabled);
   const glassBlur = useDashboardStore((s) => s.settings.glassBlur);
+  const history = useDashboardStore((s) => s.history);
   const { t } = useTranslation();
   const [colorEditorOpen, setColorEditorOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,6 +44,24 @@ export function DashboardToolbar() {
   useEffect(() => {
     if (!editMode) setMobileMenuOpen(false);
   }, [editMode]);
+
+  const handleUndo = () => {
+    const state = useDashboardStore.getState();
+    const snapshot = state.undo();
+    if (snapshot) {
+      state.setWidgets(snapshot.widgets);
+      state.setLayouts(snapshot.layouts);
+    }
+  };
+
+  const handleRedo = () => {
+    const state = useDashboardStore.getState();
+    const snapshot = state.redo();
+    if (snapshot) {
+      state.setWidgets(snapshot.widgets);
+      state.setLayouts(snapshot.layouts);
+    }
+  };
 
   return (
     <header
@@ -88,15 +107,37 @@ export function DashboardToolbar() {
         <GridLinesToggle />
         <CellSizeSlider />
         {editMode && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setColorEditorOpen(true)}
-            aria-label={t('toolbar.colorPalette')}
-            title={t('toolbar.colorPalette')}
-          >
-            <Palette className="h-4 w-4" />
-          </Button>
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleUndo}
+              disabled={history.past.length === 0}
+              aria-label={t('toolbar.undo')}
+              title={t('toolbar.undo')}
+            >
+              <Undo2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRedo}
+              disabled={history.future.length === 0}
+              aria-label={t('toolbar.redo')}
+              title={t('toolbar.redo')}
+            >
+              <Redo2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setColorEditorOpen(true)}
+              aria-label={t('toolbar.colorPalette')}
+              title={t('toolbar.colorPalette')}
+            >
+              <Palette className="h-4 w-4" />
+            </Button>
+          </>
         )}
         <ExportImportButtons />
         <EditModeToggle />
@@ -125,20 +166,52 @@ export function DashboardToolbar() {
             <GridLinesToggle showLabel />
             <CellSizeSlider showLabel />
             {editMode && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setColorEditorOpen(true);
-                  setMobileMenuOpen(false);
-                }}
-                aria-label={t('toolbar.colorPalette')}
-                title={t('toolbar.colorPalette')}
-                className="justify-start gap-2 w-full"
-              >
-                <Palette className="h-4 w-4" />
-                <span>{t('toolbar.colorPalette')}</span>
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    handleUndo();
+                    setMobileMenuOpen(false);
+                  }}
+                  disabled={history.past.length === 0}
+                  aria-label={t('toolbar.undo')}
+                  title={t('toolbar.undo')}
+                  className="justify-start gap-2 w-full"
+                >
+                  <Undo2 className="h-4 w-4" />
+                  <span>{t('toolbar.undo')}</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    handleRedo();
+                    setMobileMenuOpen(false);
+                  }}
+                  disabled={history.future.length === 0}
+                  aria-label={t('toolbar.redo')}
+                  title={t('toolbar.redo')}
+                  className="justify-start gap-2 w-full"
+                >
+                  <Redo2 className="h-4 w-4" />
+                  <span>{t('toolbar.redo')}</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setColorEditorOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  aria-label={t('toolbar.colorPalette')}
+                  title={t('toolbar.colorPalette')}
+                  className="justify-start gap-2 w-full"
+                >
+                  <Palette className="h-4 w-4" />
+                  <span>{t('toolbar.colorPalette')}</span>
+                </Button>
+              </>
             )}
             <ExportImportButtons showLabel />
             <EditModeToggle showLabel />

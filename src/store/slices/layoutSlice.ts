@@ -8,6 +8,7 @@ export interface LayoutSlice {
     breakpoint: string,
     layout: LayoutItem[],
   ) => void;
+  addLayoutEntry: (breakpoint: string, item: LayoutItem) => void;
   removeWidgetFromLayouts: (widgetId: string) => void;
 }
 
@@ -26,6 +27,14 @@ export const createLayoutSlice: StateCreator<LayoutSlice, [], []> = (set) => ({
     set((state) => ({
       layouts: { ...state.layouts, [breakpoint]: layout },
     })),
+  addLayoutEntry: (breakpoint, item) =>
+    set((state) => {
+      const layouts = state.layouts as unknown as Record<string, LayoutItem[] | undefined>;
+      const existing = layouts[breakpoint] ?? [];
+      return {
+        layouts: { ...state.layouts, [breakpoint]: [...existing, item] },
+      };
+    }),
   removeWidgetFromLayouts: (widgetId) =>
     set((state) => {
       const filterItem = (items: LayoutItem[]): LayoutItem[] =>

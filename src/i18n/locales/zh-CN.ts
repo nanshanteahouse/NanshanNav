@@ -177,6 +177,9 @@ const zhCN: TranslationSchema = {
     settings: '组件设置',
     delete: '删除组件',
     editControls: '编辑控制 — {title}',
+    copy: '复制',
+    paste: '粘贴',
+    duplicate: '重制',
   },
   settings: {
     configure: '配置 {title}',
@@ -198,6 +201,8 @@ const zhCN: TranslationSchema = {
     showGridLines: '显示网格线',
     editMode: '编辑模式',
     exportImport: '导出 / 导入',
+    undo: '撤销',
+    redo: '重做',
     showGrid: '显示网格线',
     hideGrid: '隐藏网格线',
     exportConfig: '导出面板配置',

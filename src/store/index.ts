@@ -8,9 +8,13 @@ import type { WidgetSlice } from '@/store/slices/widgetSlice.ts';
 import { createWidgetSlice } from '@/store/slices/widgetSlice.ts';
 import type { UiSlice } from '@/store/slices/uiSlice.ts';
 import { createUiSlice } from '@/store/slices/uiSlice.ts';
+import type { ClipboardSlice } from '@/store/slices/clipboardSlice.ts';
+import { createClipboardSlice } from '@/store/slices/clipboardSlice.ts';
+import type { HistorySlice } from '@/store/slices/historySlice.ts';
+import { createHistorySlice } from '@/store/slices/historySlice.ts';
 import { STORAGE_KEY } from '@/lib/constants.ts';
 
-export type DashboardState = SettingsSlice & UiSlice & LayoutSlice & WidgetSlice;
+export type DashboardState = SettingsSlice & UiSlice & LayoutSlice & WidgetSlice & ClipboardSlice & HistorySlice;
 
 export const useDashboardStore = create<DashboardState>()(
   persist(
@@ -19,6 +23,8 @@ export const useDashboardStore = create<DashboardState>()(
       ...createUiSlice(...args),
       ...createLayoutSlice(...args),
       ...createWidgetSlice(...args),
+      ...createClipboardSlice(...args),
+      ...createHistorySlice(...args),
     }),
     {
       name: STORAGE_KEY,

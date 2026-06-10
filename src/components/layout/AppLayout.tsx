@@ -1,7 +1,6 @@
 import { DashboardToolbar } from '@/components/layout/DashboardToolbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { DashboardCanvas } from '@/components/layout/DashboardCanvas';
-import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { useDashboardStore } from '@/store/index';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -10,7 +9,6 @@ export function AppLayout() {
   const sidebarOpen = useDashboardStore((s) => s.sidebarOpen);
   const setSidebarOpen = useDashboardStore((s) => s.setSidebarOpen);
   const isMobile = useMediaQuery('(max-width: 767px)');
-  useKeyboardShortcut();
 
   return (
     <div className="flex flex-col h-full">

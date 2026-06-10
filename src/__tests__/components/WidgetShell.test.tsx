@@ -8,14 +8,20 @@ import { WidgetShell } from '@/components/widgets/WidgetShell'
 const mockStore = {
   editMode: false,
   removeWidget: vi.fn(),
+  copyWidget: vi.fn(),
   updateWidget: vi.fn(),
   removeWidgetFromLayouts: vi.fn(),
+  pasteWidget: vi.fn(),
+  duplicateWidget: vi.fn(),
+  clipboard: null as { id: string; title: string; type: string; options: Record<string, unknown>; createdAt: string; updatedAt: string } | null,
   widgets: [] as { id: string; title: string; type: string; options: Record<string, unknown>; createdAt: string; updatedAt: string }[],
 }
 
 vi.mock('@/store/index', () => ({
-  useDashboardStore: (selector: (state: typeof mockStore) => unknown) =>
-    selector(mockStore),
+  useDashboardStore: Object.assign(
+    (selector: (state: typeof mockStore) => unknown) => selector(mockStore),
+    { getState: () => mockStore },
+  ),
 }))
 
 vi.mock('@/i18n', () => ({
@@ -39,7 +45,10 @@ describe('WidgetShell', () => {
   beforeEach(() => {
     mockStore.editMode = false
     mockStore.removeWidget.mockClear()
+    mockStore.copyWidget.mockClear()
     mockStore.updateWidget.mockClear()
+    mockStore.pasteWidget.mockClear()
+    mockStore.duplicateWidget.mockClear()
   })
 
   it('should render children in view mode', () => {
@@ -88,17 +97,118 @@ describe('WidgetShell', () => {
     expect(titleDiv).toBeDefined()
   })
 
-  it('should show drag handle in edit mode', () => {
+  it('should render copy button in edit mode', () => {
     mockStore.editMode = true
 
-    const { container } = render(
+    render(
       <WidgetShell widget={defaultWidget}>
         <div>Content</div>
       </WidgetShell>,
     )
 
-    const dragHandle = container.querySelector('.drag-handle')
-    expect(dragHandle).toBeDefined()
+    expect(screen.getByLabelText('widgetShell.copy')).toBeDefined()
+  })
+
+  it('should not render copy button in view mode', () => {
+    mockStore.editMode = false
+
+    render(
+      <WidgetShell widget={defaultWidget}>
+        <div>Content</div>
+      </WidgetShell>,
+    )
+
+    expect(screen.queryByLabelText('widgetShell.copy')).toBeNull()
+  })
+
+  it('should call copyWidget when copy button is clicked', () => {
+    mockStore.editMode = true
+
+    render(
+      <WidgetShell widget={defaultWidget}>
+        <div>Content</div>
+      </WidgetShell>,
+    )
+
+    const copyButton = screen.getByLabelText('widgetShell.copy')
+    copyButton.click()
+    expect(mockStore.copyWidget).toHaveBeenCalledWith(defaultWidget)
+  })
+
+  it('should render paste button in edit mode', () => {
+    mockStore.editMode = true
+
+    render(
+      <WidgetShell widget={defaultWidget}>
+        <div>Content</div>
+      </WidgetShell>,
+    )
+
+    expect(screen.getByLabelText('widgetShell.paste')).toBeDefined()
+  })
+
+  it('should disable paste button when clipboard is null', () => {
+    mockStore.editMode = true
+    mockStore.clipboard = null
+
+    render(
+      <WidgetShell widget={defaultWidget}>
+        <div>Content</div>
+      </WidgetShell>,
+    )
+
+    const pasteButton = screen.getByLabelText('widgetShell.paste')
+    expect(pasteButton.hasAttribute('disabled')).toBe(true)
+  })
+
+  it('should render duplicate button in edit mode', () => {
+    mockStore.editMode = true
+
+    render(
+      <WidgetShell widget={defaultWidget}>
+        <div>Content</div>
+      </WidgetShell>,
+    )
+
+    expect(screen.getByLabelText('widgetShell.duplicate')).toBeDefined()
+  })
+
+  it('should call duplicateWidget when duplicate button is clicked', () => {
+    mockStore.editMode = true
+
+    render(
+      <WidgetShell widget={defaultWidget}>
+        <div>Content</div>
+      </WidgetShell>,
+    )
+
+    const duplicateButton = screen.getByLabelText('widgetShell.duplicate')
+    duplicateButton.click()
+    expect(mockStore.duplicateWidget).toHaveBeenCalledWith('widget-1', expect.any(String))
+  })
+
+  it('should not render paste button in view mode', () => {
+    mockStore.editMode = false
+
+    render(
+      <WidgetShell widget={defaultWidget}>
+        <div>Content</div>
+      </WidgetShell>,
+    )
+
+    expect(screen.queryByLabelText('widgetShell.paste')).toBeNull()
+  })
+
+  it('should not render duplicate button in view mode', () => {
+    mockStore.editMode = false
+
+    render(
+      <WidgetShell widget={defaultWidget}>
+        <div>Content</div>
+      </WidgetShell>,
+    )
+
+    expect(screen.queryByLabelText('widgetShell.duplicate')).toBeNull()
   })
 
   it('should render children in edit mode too', () => {

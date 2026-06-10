@@ -175,6 +175,9 @@ export interface TranslationSchema {
     settings: string;
     delete: string;
     editControls: string;
+    copy: string;
+    paste: string;
+    duplicate: string;
   };
   settings: {
     configure: string;
@@ -196,6 +199,8 @@ export interface TranslationSchema {
     showGridLines: string;
     editMode: string;
     exportImport: string;
+    undo: string;
+    redo: string;
     showGrid: string;
     hideGrid: string;
     exportConfig: string;
