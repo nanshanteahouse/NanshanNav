@@ -114,7 +114,38 @@ app.get('/api/favicon', async (c) => {
         signal: AbortSignal.timeout(5000),
       });
       if (!httpResponse.ok) {
-        // Both favicon.ico attempts failed — try HTML discovery
+        // Both /favicon.ico attempts failed — try common alternative paths
+        // Some self-hosted apps serve favicons from non-standard paths
+        // that are publicly accessible even when the HTML page requires auth.
+        const commonPaths = [
+          '/favicon.png',
+          '/favicon.svg',
+          '/static/favicon.ico',
+          '/static/icons/favicon.ico',
+          '/icons/favicon.ico',
+          '/assets/favicon.ico',
+          '/assets/favicon.png',
+        ];
+        for (const altPath of commonPaths) {
+          try {
+            const altResp = await fetch(`https://${host}${altPath}`, {
+              signal: AbortSignal.timeout(3000),
+            });
+            if (altResp.ok) {
+              const buffer = Buffer.from(await altResp.arrayBuffer());
+              const contentType = altResp.headers.get('content-type') || 'image/x-icon';
+              cacheFavicon(host, buffer, contentType);
+              return c.body(buffer, 200, {
+                'Content-Type': contentType,
+                'Cache-Control': 'public, max-age=86400',
+              });
+            }
+          } catch {
+            // ignore per-path errors, try next path
+          }
+        }
+
+        // All common paths failed — try HTML discovery
         let htmlResponse: Response;
         try {
           htmlResponse = await fetch(`https://${host}/`, {
