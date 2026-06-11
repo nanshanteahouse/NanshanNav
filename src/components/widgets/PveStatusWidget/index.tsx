@@ -73,7 +73,8 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
   const lxcsStopped = lxcResources.length - lxcsRunning;
 
   const title = opts.nodeName || opts.proxmoxHost || 'Proxmox VE';
-  const pveHostUrl = opts.proxmoxHost ? `https://${opts.proxmoxHost}` : null;
+  const cleanHost = opts.proxmoxHost?.replace(/^https?:\/\//i, '') ?? '';
+  const pveHostUrl = cleanHost ? `https://${cleanHost}` : null;
 
   return (
     <div
