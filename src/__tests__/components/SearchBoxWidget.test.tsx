@@ -35,7 +35,7 @@ const widgetProps = {
 }
 
 describe('SearchBoxWidget - edit mode guards', () => {
-  let hrefSetter: ReturnType<typeof vi.fn>
+  let hrefSetter: (v: string) => void
 
   beforeEach(() => {
     hrefSetter = vi.fn()
