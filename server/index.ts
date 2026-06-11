@@ -97,8 +97,8 @@ app.get('/api/favicon', async (c) => {
   // Check cache
   const cached = getCachedFavicon(host);
   if (cached) {
-    return c.body(cached, 200, {
-      'Content-Type': 'image/x-icon',
+    return c.body(cached.data, 200, {
+      'Content-Type': cached.contentType,
       'Cache-Control': 'public, max-age=86400',
     });
   }
@@ -114,19 +114,71 @@ app.get('/api/favicon', async (c) => {
         signal: AbortSignal.timeout(5000),
       });
       if (!httpResponse.ok) {
+        // Both favicon.ico attempts failed — try HTML discovery
+        let htmlResponse: Response;
+        try {
+          htmlResponse = await fetch(`https://${host}/`, {
+            signal: AbortSignal.timeout(5000),
+          });
+        } catch {
+          try {
+            htmlResponse = await fetch(`http://${host}/`, {
+              signal: AbortSignal.timeout(5000),
+            });
+          } catch {
+            return c.json({ error: 'Favicon not found' }, 404);
+          }
+        }
+
+        if (htmlResponse.ok) {
+          const html = await htmlResponse.text();
+
+          // Match <link rel="icon"> with rel before href
+          const match1 = html.match(/<link[^>]*rel=["']icon["'][^>]*href=["']([^"']+)["'][^>]*\/?>/i);
+          let faviconHref = match1 ? match1[1] : null;
+
+          // Match <link> with href before rel="icon" (alternate attribute order)
+          if (!faviconHref) {
+            const match2 = html.match(/<link[^>]*href=["']([^"']+)["'][^>]*rel=["']icon["'][^>]*\/?>/i);
+            if (match2) faviconHref = match2[1];
+          }
+
+          if (faviconHref) {
+            const absoluteUrl = faviconHref.startsWith('http')
+              ? faviconHref
+              : new URL(faviconHref, `https://${host}`).toString();
+
+            const faviconResponse = await fetch(absoluteUrl, {
+              signal: AbortSignal.timeout(5000),
+            });
+
+            if (faviconResponse.ok) {
+              const buffer = Buffer.from(await faviconResponse.arrayBuffer());
+              const contentType = faviconResponse.headers.get('content-type') || 'image/x-icon';
+              cacheFavicon(host, buffer, contentType);
+              return c.body(buffer, 200, {
+                'Content-Type': contentType,
+                'Cache-Control': 'public, max-age=86400',
+              });
+            }
+          }
+        }
+
         return c.json({ error: 'Favicon not found' }, 404);
       }
       const buffer = Buffer.from(await httpResponse.arrayBuffer());
-      cacheFavicon(host, buffer);
+      const contentType = httpResponse.headers.get('content-type') || 'image/x-icon';
+      cacheFavicon(host, buffer, contentType);
       return c.body(buffer, 200, {
-        'Content-Type': httpResponse.headers.get('content-type') || 'image/x-icon',
+        'Content-Type': contentType,
         'Cache-Control': 'public, max-age=86400',
       });
     }
     const buffer = Buffer.from(await response.arrayBuffer());
-    cacheFavicon(host, buffer);
+    const contentType = response.headers.get('content-type') || 'image/x-icon';
+    cacheFavicon(host, buffer, contentType);
     return c.body(buffer, 200, {
-      'Content-Type': response.headers.get('content-type') || 'image/x-icon',
+      'Content-Type': contentType,
       'Cache-Control': 'public, max-age=86400',
     });
   } catch (err) {
