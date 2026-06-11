@@ -64,6 +64,7 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
               showUrl={showUrl}
               showDescription={showDescription}
               compact={isNameOnly}
+              showHealthIndicator={false}
             />
           )}
           {index < links.length - 1 && (

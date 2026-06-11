@@ -10,9 +10,10 @@ interface LinkItemCardProps {
   showUrl?: boolean;
   showDescription?: boolean;
   compact?: boolean;
+  showHealthIndicator?: boolean;
 }
 
-export default function LinkItemCard({ link, reachable, onClick, showName = true, showUrl = true, showDescription = true, compact }: LinkItemCardProps) {
+export default function LinkItemCard({ link, reachable, onClick, showName = true, showUrl = true, showDescription = true, compact, showHealthIndicator }: LinkItemCardProps) {
   return (
     <button
       type="button"
@@ -50,7 +51,7 @@ export default function LinkItemCard({ link, reachable, onClick, showName = true
             >
               {link.name}
             </span>
-            {!compact && <HealthIndicator reachable={reachable} />}
+            {!compact && showHealthIndicator !== false && <HealthIndicator reachable={reachable} />}
           </div>
         )}
         {!compact && showDescription && link.description && (
