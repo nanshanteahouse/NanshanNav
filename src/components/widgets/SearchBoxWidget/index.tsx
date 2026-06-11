@@ -74,7 +74,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
       url = template.replace('{query}', encodeURIComponent(trimmed));
     }
     window.location.href = url;
-  }, [query, engine, opts.customEngineUrl]);
+  }, [isEditMode, query, engine, opts.customEngineUrl]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -89,7 +89,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
   const handleSelect = useCallback((url: string) => {
     if (isEditMode) return;
     window.location.href = url;
-  }, []);
+  }, [isEditMode]);
 
   const handleEngineSelect = (key: string) => {
     setEngine(key);
