@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { icons, Globe } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { getFaviconUrl } from '@/lib/api/favicon';
@@ -19,9 +20,24 @@ const SIZE_CLASS: Record<string, string> = {
 
 export function IconDisplay({ iconSource = 'initial', iconValue, url, name, size = 'md' }: IconDisplayProps) {
   const iconSize = SIZE_CLASS[size];
+  const [faviconFailed, setFaviconFailed] = useState(false);
 
   // Favicon priority
   if (iconSource === 'favicon' && url) {
+    if (faviconFailed) {
+      const initial = name ? name.charAt(0).toUpperCase() : '?';
+      return (
+        <div
+          className={`${iconSize} flex-shrink-0 flex items-center justify-center rounded-full text-xs font-bold`}
+          style={{
+            backgroundColor: 'var(--accent-primary)',
+            color: '#ffffff',
+          }}
+        >
+          {initial}
+        </div>
+      );
+    }
     const faviconUrl = getFaviconUrl(url);
     return (
       <img
@@ -29,10 +45,7 @@ export function IconDisplay({ iconSource = 'initial', iconValue, url, name, size
         alt=""
         className={`${iconSize} flex-shrink-0`}
         style={{ objectFit: 'contain' }}
-        onError={(e) => {
-          // Fall through to next priority
-          (e.target as HTMLImageElement).style.display = 'none';
-        }}
+        onError={() => setFaviconFailed(true)}
       />
     );
   }
