@@ -21,7 +21,7 @@ const ENGINE_NAMES: Record<string, string> = {
   custom: 'C',
 };
 
-export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
+export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMode, width: _width, height: _height }: WidgetComponentProps) {
   const opts = options as unknown as SearchBoxOptions;
   const [query, setQuery] = useState('');
   const [engine, setEngine] = useState<string>(opts.defaultEngine);
@@ -63,6 +63,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
   }, [showEngineMenu]);
 
   const handleSearch = useCallback(() => {
+    if (isEditMode) return;
     const trimmed = query.trim();
     if (!trimmed) return;
     let url: string;
@@ -86,6 +87,7 @@ export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMo
   );
 
   const handleSelect = useCallback((url: string) => {
+    if (isEditMode) return;
     window.location.href = url;
   }, []);
 

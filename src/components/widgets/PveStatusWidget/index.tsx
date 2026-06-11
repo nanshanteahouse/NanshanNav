@@ -6,7 +6,7 @@ import UptimeDisplay from './UptimeDisplay.tsx';
 import StorageBar from './StorageBar.tsx';
 import { useTranslation } from '@/i18n';
 
-export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
+export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMode, width: _width, height: _height }: WidgetComponentProps) {
   const { t } = useTranslation();
   const opts = options as unknown as PveStatusOptions;
   const { nodeStatusQuery, resourcesQuery } = usePveStatus(opts);
@@ -86,7 +86,10 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
           <span
             className="text-sm font-bold cursor-pointer hover:text-primary"
             style={{ color: 'var(--text-primary)' }}
-            onClick={() => window.open(pveHostUrl, '_blank', 'noopener,noreferrer')}
+            onClick={() => {
+              if (isEditMode) return;
+              window.open(pveHostUrl, '_blank', 'noopener,noreferrer');
+            }}
             title={t('widget.pveStatus.openWebUi')}
           >
             {title}

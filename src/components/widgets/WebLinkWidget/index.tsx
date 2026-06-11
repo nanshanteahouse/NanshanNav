@@ -4,7 +4,7 @@ import { checkLinkHealth } from '@/lib/api/link-health.ts';
 import { normalizeUrl } from '@/lib/utils/url.ts';
 import LinkItemCard from './LinkItem.tsx';
 
-export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
+export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode, width: _width, height: _height }: WidgetComponentProps) {
   const opts = options as unknown as WebLinkOptions;
   const links: LinkItem[] = Array.isArray(opts.links) ? opts.links : [];
   const healthEnabled = opts.healthCheckEnabled;
@@ -29,6 +29,7 @@ export default function WebLinkWidget({ widgetId: _widgetId, options, isEditMode
   }
 
   const handleClick = (url: string) => {
+    if (isEditMode) return;
     const targetUrl = normalizeUrl(url);
     if (opts.openInNewTab) {
       window.open(targetUrl, '_blank', 'noopener,noreferrer');

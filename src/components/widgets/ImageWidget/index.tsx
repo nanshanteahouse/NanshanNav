@@ -108,13 +108,13 @@ export default function ImageWidget({
         }}
         onLoad={() => setLoaded(true)}
         onError={() => setLoadError(true)}
-        onClick={opts.onClick === 'preview' ? () => setPreviewOpen(true) : undefined}
+        onClick={!isEditMode && opts.onClick === 'preview' ? () => setPreviewOpen(true) : undefined}
       />
     </div>
   );
 
   const wrappedContent =
-    opts.onClick === 'link' && opts.linkUrl ? (
+    !isEditMode && opts.onClick === 'link' && opts.linkUrl ? (
       <a
         href={normalizeUrl(opts.linkUrl)}
         target={opts.openInNewTab ? '_blank' : undefined}

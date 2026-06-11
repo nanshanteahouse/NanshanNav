@@ -18,7 +18,7 @@ function sanitizeUrl(url: string): string {
   return url;
 }
 
-export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
+export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEditMode, width: _width, height: _height }: WidgetComponentProps) {
   const opts = options as unknown as MarkdownTextOptions;
   const hasContent = opts.content && opts.content.trim().length > 0;
 
@@ -53,6 +53,18 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           urlTransform={sanitizeUrl}
+          components={{
+            a: ({ href, children, ...props }) => (
+              <a
+                href={isEditMode ? undefined : href}
+                onClick={isEditMode ? (e: React.MouseEvent) => e.preventDefault() : undefined}
+                style={isEditMode ? { cursor: 'default' } : undefined}
+                {...props}
+              >
+                {children}
+              </a>
+            ),
+          }}
         >
           {opts.content}
         </ReactMarkdown>
