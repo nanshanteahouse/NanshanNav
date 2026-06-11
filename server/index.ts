@@ -323,8 +323,21 @@ app.get(
 const DIST_DIR = path.resolve(process.cwd(), 'dist');
 
 app.get('/favicon.svg', serveStatic({ root: DIST_DIR }));
-app.get('/assets/*', serveStatic({ root: DIST_DIR }));
-app.get('*', serveStatic({ root: DIST_DIR, path: 'index.html' }));
+app.get('/assets/*', serveStatic({
+  root: DIST_DIR,
+  // Assets have content hashes — cache forever
+  onFound: (_path, c) => {
+    c.header('Cache-Control', 'public, max-age=31536000, immutable');
+  },
+}));
+app.get('*', serveStatic({
+  root: DIST_DIR,
+  path: 'index.html',
+  // index.html must never be cached — it references hashed assets
+  onFound: (_path, c) => {
+    c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  },
+}));
 
 serve(
   {
