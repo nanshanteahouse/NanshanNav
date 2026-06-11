@@ -4,8 +4,10 @@ import CpuBar from './CpuBar.tsx';
 import MemoryBar from './MemoryBar.tsx';
 import UptimeDisplay from './UptimeDisplay.tsx';
 import StorageBar from './StorageBar.tsx';
+import { useTranslation } from '@/i18n';
 
 export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMode: _isEditMode, width: _width, height: _height }: WidgetComponentProps) {
+  const { t } = useTranslation();
   const opts = options as unknown as PveStatusOptions;
   const { nodeStatusQuery, resourcesQuery } = usePveStatus(opts);
 
@@ -29,7 +31,7 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
               borderTopColor: 'var(--accent-primary)',
             }}
           />
-          <span className="text-xs">Loading PVE data...</span>
+          <span className="text-xs">{t('widget.pveStatus.loading')}</span>
         </div>
       </div>
     );
@@ -39,7 +41,7 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center" data-widget-type="pve-status">
         <span className="text-sm" style={{ color: 'var(--status-offline)' }}>
-          Connection Error
+          {t('widget.pveStatus.connectionError')}
         </span>
         {errorMsg && (
           <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -47,7 +49,7 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
           </span>
         )}
         <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          Last update: {nodeStatusQuery.dataUpdatedAt ? new Date(nodeStatusQuery.dataUpdatedAt).toLocaleTimeString() : 'never'}
+          {t('widget.pveStatus.lastUpdate')}: {nodeStatusQuery.dataUpdatedAt ? new Date(nodeStatusQuery.dataUpdatedAt).toLocaleTimeString() : t('common.never')}
         </span>
       </div>
     );
@@ -57,7 +59,7 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
     return (
       <div className="flex h-full w-full items-center justify-center p-4" data-widget-type="pve-status">
         <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          No data available
+          {t('widget.pveStatus.noData')}
         </span>
       </div>
     );
@@ -70,18 +72,32 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
   const lxcsRunning = lxcResources.filter((r) => r.status === 'running').length;
   const lxcsStopped = lxcResources.length - lxcsRunning;
 
+  const title = opts.nodeName || opts.proxmoxHost || 'Proxmox VE';
+  const pveHostUrl = opts.proxmoxHost ? `https://${opts.proxmoxHost}` : null;
+
   return (
     <div
       className="flex h-full w-full flex-col gap-2 overflow-auto p-4 scrollbar-thin"
       data-widget-type="pve-status"
     >
       <div className="text-center">
-        <span
-          className="text-sm font-bold"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          {opts.nodeName || opts.proxmoxHost || 'Proxmox VE'}
-        </span>
+        {opts.showTitleLink && pveHostUrl ? (
+          <span
+            className="text-sm font-bold cursor-pointer hover:text-primary"
+            style={{ color: 'var(--text-primary)' }}
+            onClick={() => window.open(pveHostUrl, '_blank', 'noopener,noreferrer')}
+            title={t('widget.pveStatus.openWebUi')}
+          >
+            {title}
+          </span>
+        ) : (
+          <span
+            className="text-sm font-bold"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {title}
+          </span>
+        )}
       </div>
 
       {opts.showCpu && (
@@ -103,20 +119,20 @@ export default function PveStatusWidget({ widgetId: _widgetId, options, isEditMo
       {opts.showVmCounts && (
         <div className="flex flex-col gap-1 text-xs">
           <div className="flex items-center justify-between">
-            <span style={{ color: 'var(--text-secondary)' }}>VMs</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{t('widget.pveStatus.vms')}</span>
             <span style={{ color: 'var(--text-primary)' }}>
-              <span style={{ color: 'var(--status-online)' }}>{vmsRunning} running</span>
+              <span style={{ color: 'var(--status-online)' }}>{vmsRunning} {t('widget.pveStatus.running')}</span>
               {vmsStopped > 0 && (
-                <span style={{ color: 'var(--text-muted)' }}> / {vmsStopped} stopped</span>
+                <span style={{ color: 'var(--text-muted)' }}> / {vmsStopped} {t('widget.pveStatus.stopped')}</span>
               )}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span style={{ color: 'var(--text-secondary)' }}>LXCs</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{t('widget.pveStatus.lxcs')}</span>
             <span style={{ color: 'var(--text-primary)' }}>
-              <span style={{ color: 'var(--status-online)' }}>{lxcsRunning} running</span>
+              <span style={{ color: 'var(--status-online)' }}>{lxcsRunning} {t('widget.pveStatus.running')}</span>
               {lxcsStopped > 0 && (
-                <span style={{ color: 'var(--text-muted)' }}> / {lxcsStopped} stopped</span>
+                <span style={{ color: 'var(--text-muted)' }}> / {lxcsStopped} {t('widget.pveStatus.stopped')}</span>
               )}
             </span>
           </div>

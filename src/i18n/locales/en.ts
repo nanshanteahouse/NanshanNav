@@ -21,6 +21,7 @@ const en: TranslationSchema = {
     on: 'On',
     no: 'No',
     yes: 'Yes',
+    never: 'never',
   },
   registry: {
     group: {
@@ -107,6 +108,13 @@ const en: TranslationSchema = {
       showUptime: 'Show Uptime',
       showStorage: 'Show Storage',
       showVmCounts: 'Show VM Counts',
+      showTitleLink: 'Link Title to PVE Host',
+      openWebUi: 'Open Proxmox Web UI',
+      loading: 'Loading PVE data...',
+      noData: 'No data available',
+      lastUpdate: 'Last update',
+      vms: 'VMs',
+      lxcs: 'LXCs',
     },
     searchBox: {
       name: 'Search',

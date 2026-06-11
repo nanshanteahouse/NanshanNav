@@ -127,6 +127,7 @@ export interface PveStatusOptions {
   showUptime: boolean;
   showStorage: boolean;
   showVmCounts: boolean;
+  showTitleLink: boolean; // whether to make the title clickable to open PVE host
   refreshInterval: number; // seconds, default 15
 }
 

@@ -19,6 +19,7 @@ export interface TranslationSchema {
     on: string;
     no: string;
     yes: string;
+    never: string;
   };
   registry: {
     group: {
@@ -105,6 +106,13 @@ export interface TranslationSchema {
       showUptime: string;
       showStorage: string;
       showVmCounts: string;
+      showTitleLink: string;
+      openWebUi: string;
+      loading: string;
+      noData: string;
+      lastUpdate: string;
+      vms: string;
+      lxcs: string;
     };
     searchBox: {
       name: string;

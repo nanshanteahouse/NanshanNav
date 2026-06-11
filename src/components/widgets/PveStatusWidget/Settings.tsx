@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { WidgetSettingsProps, PveStatusOptions } from '@/types/widget.ts';
+import { useTranslation } from '@/i18n';
+
 export default function PveStatusSettings({ widgetId: _widgetId, options, onChange }: WidgetSettingsProps) {
+  const { t } = useTranslation();
   const opts = options as unknown as PveStatusOptions;
 
   const update = (patch: Partial<PveStatusOptions>) => {
@@ -73,7 +76,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
     <div className="flex flex-col gap-5">
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-          Proxmox Host
+          {t('widget.pveStatus.proxmoxHost')}
         </span>
         <input
           type="text"
@@ -91,7 +94,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
 
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-          Node Name
+          {t('widget.pveStatus.nodeName')}
         </span>
         <input
           type="text"
@@ -109,7 +112,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
 
       <div className="flex flex-col gap-1.5">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-          API Token
+          {t('widget.pveStatus.name')} API Token
         </span>
         <div className="flex gap-2">
           <input
@@ -134,7 +137,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
               onClick={handleClearToken}
               disabled={tokenSaving}
             >
-              Clear
+              {t('common.delete')}
             </button>
           )}
           {tokenInput.trim() && (
@@ -145,7 +148,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
               onClick={handleSaveToken}
               disabled={tokenSaving}
             >
-              {tokenSaving ? '...' : 'Save'}
+              {tokenSaving ? '...' : t('common.save')}
             </button>
           )}
         </div>
@@ -168,7 +171,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
             onChange={(e) => update({ showCpu: e.target.checked })}
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            Show CPU
+            {t('widget.pveStatus.showCpu')}
           </span>
         </label>
 
@@ -180,7 +183,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
             onChange={(e) => update({ showMemory: e.target.checked })}
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            Show Memory
+            {t('widget.pveStatus.showMemory')}
           </span>
         </label>
 
@@ -192,7 +195,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
             onChange={(e) => update({ showUptime: e.target.checked })}
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            Show Uptime
+            {t('widget.pveStatus.showUptime')}
           </span>
         </label>
 
@@ -204,7 +207,7 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
             onChange={(e) => update({ showStorage: e.target.checked })}
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            Show Storage
+            {t('widget.pveStatus.showStorage')}
           </span>
         </label>
 
@@ -216,14 +219,26 @@ export default function PveStatusSettings({ widgetId: _widgetId, options, onChan
             onChange={(e) => update({ showVmCounts: e.target.checked })}
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            Show VM Counts
+            {t('widget.pveStatus.showVmCounts')}
+          </span>
+        </label>
+
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded"
+            checked={opts.showTitleLink ?? true}
+            onChange={(e) => update({ showTitleLink: e.target.checked })}
+          />
+          <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+            {t('widget.pveStatus.showTitleLink')}
           </span>
         </label>
       </div>
 
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-          Refresh Interval (seconds)
+          {t('widget.pveStatus.refreshInterval')}
         </span>
         <input
           type="number"

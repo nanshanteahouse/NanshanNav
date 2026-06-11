@@ -21,6 +21,7 @@ const zhCN: TranslationSchema = {
     on: '开',
     no: '否',
     yes: '是',
+    never: '从未',
   },
   registry: {
     group: {
@@ -107,6 +108,13 @@ const zhCN: TranslationSchema = {
       showUptime: '显示运行时间',
       showStorage: '显示存储',
       showVmCounts: '显示虚拟机数量',
+      showTitleLink: '标题链接到 PVE 管理地址',
+      openWebUi: '打开 Proxmox 管理界面',
+      loading: '正在加载 PVE 数据...',
+      noData: '暂无数据',
+      lastUpdate: '最后更新',
+      vms: '虚拟机',
+      lxcs: '容器',
     },
     searchBox: {
       name: '搜索',
