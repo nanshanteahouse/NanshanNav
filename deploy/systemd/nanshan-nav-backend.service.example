@@ -32,7 +32,7 @@
 #   UPLOAD_DIR       ./uploads      Uploaded files directory
 #   FRONTEND_PORT    5173           Vite dev frontend port (dev only)
 #   BACKEND_PORT     3001           Vite proxy target (used by deploy/scripts/start.sh)
-#   VITE_PVE_API_TOKEN  (required)  Proxmox VE API token
+#   PVE_API_TOKEN       (required)  Proxmox VE API token
 #
 # ── Custom Port (outside the unit) ──
 #   sudo systemctl edit nanshan-nav-backend
@@ -77,7 +77,7 @@ Environment=PORT=3001
 Environment=UPLOAD_DIR=/var/www/nanshan-nav/uploads
 
 # For PVE integration, uncomment and set your token:
-# Environment=VITE_PVE_API_TOKEN=monitor@pve!dashboard=YOUR_SECRET
+# Environment=PVE_API_TOKEN=monitor@pve!dashboard=YOUR_SECRET
 
 # ── Node.js Options ─────────────────────────────────────────────────────────
 Environment=NODE_OPTIONS=--no-deprecation
