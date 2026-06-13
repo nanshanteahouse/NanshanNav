@@ -9,7 +9,7 @@
 #
 # ── For Production with Nginx ──
 #   If you already have Nginx serving the SPA static files (see
-#   nginx.conf.example), you do NOT need this service.  Instead, run the
+#   deploy/nginx/nginx.conf.example), you do NOT need this service.  Instead, run the
 #   frontend build as a one-shot task (see "[Install]" section below for an
 #   alternative trigger).
 #

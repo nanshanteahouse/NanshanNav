@@ -237,7 +237,7 @@ cp .env.example .env
 # 编辑 .env 文件，配置 PVE API Token 等
 
 # 4. 同时启动前后端开发服务器
-./start.sh
+./deploy/scripts/start.sh
 
 # 或者分别启动：
 npm run dev           # 前端 (Vite, 默认 :5173)
@@ -265,9 +265,33 @@ NanshanNav/
 ├── tsconfig.json / tsconfig.app.json  # TypeScript 配置
 ├── vitest.config.ts                   # 测试配置
 ├── eslint.config.js                   # ESLint 配置
-├── start.sh                           # 一键启动脚本
 │
 ├── index.html                         # SPA 入口 HTML（含暗色模式闪屏防护）
+│
+├── deploy/                            # 🆕 部署运维相关
+│   ├── docker/
+│   │   ├── Dockerfile                 # 多阶段构建
+│   │   ├── docker-compose.yml         # 服务编排（Nginx + Backend + Authelia + Redis）
+│   │   ├── .dockerignore              # Docker 构建上下文排除规则
+│   │   └── .env.example               # Docker 部署环境变量模板
+│   │
+│   ├── nginx/
+│   │   ├── nginx.conf                 # Nginx 主配置
+│   │   ├── conf.d/
+│   │   │   └── nav.conf               # NanshanNav 路由配置
+│   │   └── nginx.conf.example         # Nginx 配置示例（含 Authelia 认证）
+│   │
+│   ├── systemd/
+│   │   ├── nanshan-nav-backend.service.example   # systemd 后端服务示例
+│   │   └── nanshan-nav-frontend.service.example  # systemd 前端服务示例
+│   │
+│   ├── authelia/
+│   │   └── config/
+│   │       ├── configuration.yml       # Authelia 认证配置
+│   │       └── users.yml               # 用户文件
+│   │
+│   └── scripts/
+│       └── start.sh                    # 一键启动脚本
 │
 ├── src/                               # 前端源码
 │   ├── main.tsx                       # 应用入口（React Query Provider）
@@ -383,10 +407,8 @@ NanshanNav/
 │
 ├── dist/                              # 构建产物
 ├── uploads/                           # 上传文件（含 favicons 缓存）
-│
-├── nginx.conf.example                 # Nginx 配置示例（含 Authelia 认证）
-├── nanshan-nav-backend.service.example  # systemd 后端服务示例
-└── nanshan-nav-frontend.service.example # systemd 前端服务示例
+├── public/                            # 静态资源（favicon.svg 等）
+└── node_modules/                      # 依赖
 ```
 
 ---
@@ -436,7 +458,7 @@ VITE_PVE_API_TOKEN=monitor@pve!dashboard=YOUR_SECRET
 
 ### Nginx 部署配置
 
-参考 `nginx.conf.example`，支持：
+参考 `deploy/nginx/nginx.conf.example`，支持：
 - Authelia 认证集成
 - `/admin` 路径的编辑模式保护
 - 上传文件代理与缓存
@@ -459,25 +481,25 @@ npm run build
 
 项目提供了完整的 systemd 服务示例：
 
-**后端服务** (`nanshan-nav-backend.service.example`)：
+**后端服务** (`deploy/systemd/nanshan-nav-backend.service.example`)：
 - 使用 `tsx` 直接运行 TypeScript 后端
 - 包含安全加固配置（PrivateTmp、ProtectSystem、NoNewPrivileges 等）
 - 自动重启策略
 
 ```bash
-sudo cp nanshan-nav-backend.service.example /etc/systemd/system/nanshan-nav-backend.service
+sudo cp deploy/systemd/nanshan-nav-backend.service.example /etc/systemd/system/nanshan-nav-backend.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now nanshan-nav-backend
 ```
 
-**前端服务** (`nanshan-nav-frontend.service.example`)：
+**前端服务** (`deploy/systemd/nanshan-nav-frontend.service.example`)：
 - 支持两种部署方式：
   - **Option A（推荐）**：Nginx 直接托管静态文件
   - **Option B**：Vite preview 模式提供服务
 
 ### 反向代理（Nginx）
 
-参考 `nginx.conf.example` 配置反向代理，包含：
+参考 `deploy/nginx/nginx.conf.example` 配置反向代理，包含：
 - SPA 路由处理（`try_files $uri $uri/ /index.html`）
 - `/admin` 路径的 Authelia 认证保护
 - 上传文件缓存策略（`expires 30d; Cache-Control: public, immutable`）
@@ -580,20 +602,21 @@ docker compose up -d
 ### Docker 文件结构
 
 ```
-docker-deployment/
-├── .dockerignore              # 构建上下文排除规则
-├── Dockerfile                 # 多阶段构建（builder + runtime）
-├── docker-compose.yml         # 服务编排
+deploy/
 ├── docker/
-│   └── .env.example           # 环境变量模板
+│   ├── Dockerfile               # 多阶段构建（builder + runtime）
+│   ├── docker-compose.yml       # 服务编排
+│   ├── .dockerignore            # 构建上下文排除规则
+│   └── .env.example             # 环境变量模板
 ├── nginx/
-│   ├── nginx.conf             # Nginx 主配置
-│   └── conf.d/
-│       └── nav.conf           # NanshanNav 路由配置
+│   ├── nginx.conf               # Nginx 主配置
+│   ├── conf.d/
+│   │   └── nav.conf             # NanshanNav 路由配置
+│   └── nginx.conf.example       # Nginx 配置示例（含 Authelia）
 └── authelia/
     └── config/
-        ├── configuration.yml  # Authelia 认证配置
-        └── users.yml          # 用户文件
+        ├── configuration.yml    # Authelia 认证配置
+        └── users.yml            # 用户文件
 ```
 
 ### 备份与恢复
@@ -866,10 +889,10 @@ npm run format       # 代码格式化
 
 ```bash
 # 方法一：脚本参数
-./start.sh -f 8080 -b 4000
+./deploy/scripts/start.sh -f 8080 -b 4000
 
 # 方法二：环境变量
-FRONTEND_PORT=8080 BACKEND_PORT=4000 ./start.sh
+FRONTEND_PORT=8080 BACKEND_PORT=4000 ./deploy/scripts/start.sh
 
 # 方法三：在 .env 文件中设置
 ```
@@ -905,7 +928,7 @@ npm run test -- src/__tests__/  # 指定测试目录
 
 ### 如何保护编辑模式？
 
-使用 `/admin` 路径访问自动进入编辑模式。结合 Nginx 的 Authelia 认证，可对 `/admin` 路径添加额外的访问控制（参考 `nginx.conf.example`）。
+使用 `/admin` 路径访问自动进入编辑模式。结合 Nginx 的 Authelia 认证，可对 `/admin` 路径添加额外的访问控制（参考 `deploy/nginx/nginx.conf.example`）。
 
 ### 如何备份仪表盘配置？
 

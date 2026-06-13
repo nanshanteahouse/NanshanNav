@@ -4,7 +4,7 @@
 #
 # This unit manages the NanshanNav backend (Hono/Node.js) as a systemd service.
 # It is intended for production deployment alongside Nginx (see
-# nginx.conf.example for the reverse proxy configuration).
+# deploy/nginx/nginx.conf.example for the reverse proxy configuration).
 #
 # ── Quick Install ──
 #   1. Build the frontend:
@@ -31,7 +31,7 @@
 #   PORT             3001           Backend server listen port
 #   UPLOAD_DIR       ./uploads      Uploaded files directory
 #   FRONTEND_PORT    5173           Vite dev frontend port (dev only)
-#   BACKEND_PORT     3001           Vite proxy target (used by start.sh)
+#   BACKEND_PORT     3001           Vite proxy target (used by deploy/scripts/start.sh)
 #   VITE_PVE_API_TOKEN  (required)  Proxmox VE API token
 #
 # ── Custom Port (outside the unit) ──
