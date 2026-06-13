@@ -511,6 +511,7 @@ docker run --rm ghcr.io/authelia/authelia:4.38 authelia hash-password 'your-pass
 # 将输出的哈希值填入 .env 的 AUTHELIA_PASSWORD
 
 # 4. 构建镜像并启动所有服务
+# ⏱ 首次构建需要下载依赖和编译前端，约 1-3 分钟
 docker compose up -d
 
 # 5. 访问
@@ -521,23 +522,29 @@ docker compose up -d
 ### 服务架构
 
 ```
-                          ┌─────────────────────────┐
-                          │   Nginx (:8080 → :80)   │
-                          │   反向代理 + Authelia    │
-                          └──────┬────────┬─────────┘
-                                 │        │
-                    ┌────────────┘        └───────────┐
-                    ▼                                  ▼
-          ┌─────────────────┐              ┌──────────────────┐
-          │   Backend :3001  │              │   Authelia :9091 │
-          │   Hono.js API    │              │   认证服务        │
-          │   + SPA 静态服务  │              └────────┬─────────┘
-          └─────────────────┘                       │
-                                                    ▼
-                                          ┌──────────────────┐
-                                          │   Redis :6379     │
-                                          │   会话存储         │
-                                          └──────────────────┘
+                          ┌────────────────────────────────────┐
+                          │         Nginx (:8080 → :80)        │
+                          │   ┌──────────────────────────────┐ │
+                          │   │    auth_request → Authelia    │ │
+                          │   │    → 认证通过 → 转发到 Backend │ │
+                          │   └──────────────────────────────┘ │
+                          └──────┬──────────────────┬──────────┘
+                                 │                  │
+                    ┌────────────┘                  └──────────────┐
+                    ▼                                               ▼
+          ┌─────────────────────┐                     ┌──────────────────────┐
+          │  Backend :3001      │                     │  Authelia :9091      │
+          │  ┌───────────────┐  │                     │  ┌────────────────┐  │
+          │  │ /api/* → API  │  │   /api/verify       │  │  /api/verify   │  │
+          │  │ / (SPA) 静态  │◄─┼─────────────────────┼──│  认证验证端点   │  │
+          │  └───────────────┘  │                     │  └────────────────┘  │
+          └─────────────────────┘                     └──────────┬───────────┘
+                                                                 │
+                                                                 ▼
+                                                     ┌──────────────────────┐
+                                                     │  Redis :6379         │
+                                                     │  会话存储             │
+                                                     └──────────────────────┘
 ```
 
 ### 环境变量
@@ -555,6 +562,10 @@ docker compose up -d
 | `NGINX_HTTP_PORT` | `8080` | Nginx HTTP 宿主机端口 |
 | `NGINX_HTTPS_PORT` | `8443` | Nginx HTTPS 宿主机端口 |
 
+> **注意**: `NGINX_HTTPS_PORT` 端口已映射但容器内未配置 TLS 终止。
+> HTTPS 需要在外部反向代理（如 Traefik、Caddy、Cloudflare Tunnel）或
+> 在 Nginx 中自行添加 SSL 证书配置后使用。
+
 ### 持久化数据
 
 所有 Docker 命名卷位置（`docker volume ls` 可查看）：
@@ -565,6 +576,25 @@ docker compose up -d
 | `nanshan-nav-uploads` | 上传的图片文件 + Favicon 缓存 | `/app/uploads` |
 | `authelia-db` | Authelia 用户/设备数据库 | `/db` |
 | `redis-data` | Redis 会话数据 | `/data` |
+
+### Docker 文件结构
+
+```
+docker-deployment/
+├── .dockerignore              # 构建上下文排除规则
+├── Dockerfile                 # 多阶段构建（builder + runtime）
+├── docker-compose.yml         # 服务编排
+├── docker/
+│   └── .env.example           # 环境变量模板
+├── nginx/
+│   ├── nginx.conf             # Nginx 主配置
+│   └── conf.d/
+│       └── nav.conf           # NanshanNav 路由配置
+└── authelia/
+    └── config/
+        ├── configuration.yml  # Authelia 认证配置
+        └── users.yml          # 用户文件
+```
 
 ### 备份与恢复
 
