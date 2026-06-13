@@ -45,10 +45,26 @@ services:
       authelia:
         condition: service_started
 
+  # -----------------------------------------------------------------------
+  # Redis — optional Authelia session store (in-memory is the lightweight default)
+  # Uncomment the service below AND the `redis-data` volume, then enable the
+  # `session.redis` block in authelia/config/configuration.yml.
+  # -----------------------------------------------------------------------
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: nanshan-nav-redis
+  #   restart: unless-stopped
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - nanshan-nav
+
   authelia:
     image: ghcr.io/authelia/authelia:4.38
     container_name: nanshan-nav-authelia
     restart: unless-stopped
+    # depends_on:        # uncomment when redis is enabled
+    #   - redis
     environment:
       JWT_SECRET: ${JWT_SECRET}
       SESSION_SECRET: ${SESSION_SECRET}
@@ -59,17 +75,6 @@ services:
       - authelia-db:/db
     networks:
       - nanshan-nav
-    depends_on:
-      - redis
-
-  redis:
-    image: redis:7-alpine
-    container_name: nanshan-nav-redis
-    restart: unless-stopped
-    volumes:
-      - redis-data:/data
-    networks:
-      - nanshan-nav
 
 volumes:
   nanshan-nav-config:
@@ -78,9 +83,8 @@ volumes:
     name: nanshan-nav-uploads
   authelia-db:
     name: authelia-db
-  redis-data:
-    name: redis-data
-
+  # redis-data:          # uncomment when redis is enabled
+  #   name: redis-data
 networks:
   nanshan-nav:
     name: nanshan-nav

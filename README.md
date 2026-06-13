@@ -139,7 +139,7 @@ NanshanNav 内置 **8 种组件**，采用组件注册表模式动态加载：
 
 ### Docker（推荐）
 
-一键启动 Nginx + Backend + Authelia + Redis 完整服务栈：
+一键启动 Nginx + Backend + Authelia 完整服务栈（Redis 可选，默认不启用）：
 
 ```bash
 cp deploy/docker/.env.example .env

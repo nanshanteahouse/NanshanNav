@@ -1,6 +1,6 @@
 # NanshanNav Docker 部署指南
 
-使用 Docker Compose 一键部署 NanshanNav 完整服务栈，包含 Nginx 反向代理、Node.js 后端、Authelia 认证服务和 Redis 会话存储。
+使用 Docker Compose 一键部署 NanshanNav 完整服务栈，包含 Nginx 反向代理、Node.js 后端和 Authelia 认证服务。
 
 ---
 
@@ -58,39 +58,39 @@ cd deploy/docker && docker compose up -d
 │  │  ┌──────────────────────────────────────────────┐   │   │
 │  │  │  auth_request ──→ Authelia :9091/api/verify  │   │   │
 │  │  │                                              │   │   │
-│  │  │  受保护路径: /api/*  /admin  /uploads/*      │   │   │
+│  │  │  受保护路径: /api/*  /admin                  │   │   │
 │  │  │  公开路径:   /     /api/health-check         │   │   │
 │  │  │                                              │   │   │
 │  │  │  认证通过 ──→ 请求转发至 Backend :3001       │   │   │
 │  │  │  认证失败 ──→ 302 重定向至 Authelia 登录页   │   │   │
 │  │  └──────────────────────────────────────────────┘   │   │
 │  └─────────────────────────────────────────────────────┘   │
-└─────────────┬──────────────────────────┬────────────────────┘
-              │                          │
-              ▼                          ▼
-┌──────────────────────────┐  ┌──────────────────────────┐
-│   Backend :3001          │  │  Authelia :9091           │
-│                          │  │                          │
-│  /api/*          受保护  │  │  /api/verify    认证端点 │
-│  /admin          受保护  │  │  文件认证 (users.yml)    │
-│  /api/health-check 公开  │  │  SQLite 数据库 (/db)     │
-│  / (SPA 静态文件) 公开   │  │                          │
-│                          │  │  环境变量注入密码哈希    │
-│  数据卷:                 │  └───────────┬──────────────┘
-│  nanshan-nav-config      │              │
-│  nanshan-nav-uploads     │              ▼
-└──────────────────────────┘  ┌──────────────────────────┐
-                              │  Redis :6379              │
-                              │  Authelia 会话存储        │
-                              │  数据卷: redis-data       │
-                              └──────────────────────────┘
+└─────────────────────┬──────────────────┬────────────────────┘
+                      │                  │
+                      ▼                  ▼
+┌────────────────────────────┐  ┌──────────────────────────┐
+│   Backend :3001            │  │  Authelia :9091           │
+│                            │  │                          │
+│  /api/*          受保护    │  │  /api/verify    认证端点 │
+│  /admin          受保护    │  │  文件认证 (users.yml)    │
+│  /api/health-check 公开    │  │  SQLite 数据库 (/db)     │
+│  / (SPA 静态文件) 公开     │  │  会话: 内存存储(默认)    │
+│                            │  │  环境变量注入密码哈希    │
+│  数据卷:                   │  └──────┬───────────────────┘
+│  nanshan-nav-config        │         │（可选）
+│  nanshan-nav-uploads       │         ▼
+└────────────────────────────┘  ┌──────────────┐
+                                │  Redis :6379  │
+                                └──────────────┘
 ```
+
+> **Redis 为可选服务**：默认使用 Authelia 内存会话（轻量无依赖）。如需持久化会话（重启不丢登录），见下方"启用 Redis"说明。
 
 ### 请求流程
 
 1. 用户访问 `http://localhost:8080/` → Nginx 直接代理到 Backend，返回 SPA
 2. 用户访问 `http://localhost:8080/admin` → Nginx 触发 `auth_request` 到 Authelia :9091
-3. Authelia 验证会话（Redis 中查询）→ 未登录则重定向到 Authelia 登录页
+3. Authelia 验证会话（内存中查询）→ 未登录则重定向到 Authelia 登录页
 4. 登录成功后 Authelia 设置会话 Cookie，后续请求自动通过验证
 5. 请求到达 Backend，返回管理页面
 
@@ -137,21 +137,29 @@ HTTPS 端口（8443）已映射但容器内 Nginx **未配置 TLS 终止**。如
 | 重启策略 | `unless-stopped` |
 | 配置挂载 | `authelia/config/` → `/config/`（只读） |
 | 数据卷 | `authelia-db` → `/db`（SQLite） |
-| 依赖 | redis |
+| 会话存储 | 内存（Authelia 内置，无需额外服务） |
 
 环境变量注入配置：
 - `JWT_SECRET`: 签名认证令牌
 - `SESSION_SECRET`: 加密会话数据
 - `AUTHELIA_USER` / `AUTHELIA_PASSWORD`: 文件认证的用户名和 bcrypt 密码哈希
 
-### redis
+### redis（可选）
 
 | 属性 | 值 |
 |------|-----|
 | 镜像 | `redis:7-alpine` |
 | 容器端口 | `6379` |
 | 数据卷 | `redis-data` → `/data` |
-| 用途 | Authelia 会话缓存 |
+| 用途 | Authelia 会话缓存（可选） |
+
+默认 Authelia 使用**内存会话**，零额外依赖。如需重启不丢登录，启用 Redis：
+
+1. **编辑 `deploy/docker/docker-compose.yml`**：取消注释 `redis` 服务块、authelia 下的 `depends_on: - redis`、以及 `redis-data` 卷
+2. **编辑 `deploy/authelia/config/configuration.yml`**：取消注释 `session.redis` 块（`host: redis / port: 6379`）
+3. **重启**：`docker compose up -d`
+
+启用后 Authelia 的会话数据持久化在 Redis 中，重启 Authelia 容器不会导致已登录用户被踢出。
 
 ---
 
@@ -204,7 +212,7 @@ docker run --rm ghcr.io/authelia/authelia:4.38 authelia hash-password 'your-pass
 | `nanshan-nav-config` | 仪表盘配置、PVE 令牌、加密密钥 | `/app/server/config` | `dashboard-state.json`、`pve-tokens.json`、`.pve-key` |
 | `nanshan-nav-uploads` | 上传的图片、Favicon 缓存 | `/app/uploads` | 用户上传文件、`favicons/` 目录 |
 | `authelia-db` | Authelia 用户和设备数据库 | `/db` | SQLite 数据库文件 |
-| `redis-data` | Redis 持久化数据 | `/data` | AOF/RDB 快照文件 |
+| `redis-data`（可选） | Redis 持久化数据 | `/data` | 启用 Redis 后自动创建 |
 
 > 这些卷在 `docker compose down` 后仍保留。只有 `docker compose down -v` 会删除它们。
 
@@ -216,7 +224,7 @@ docker run --rm ghcr.io/authelia/authelia:4.38 authelia hash-password 'your-pass
 deploy/
 ├── docker/
 │   ├── Dockerfile               # 多阶段构建（builder + runtime）
-│   ├── docker-compose.yml       # 服务编排（4 服务 + 4 卷 + 1 网络）
+│   ├── docker-compose.yml       # 服务编排（3 服务 + 可选 Redis + 3+1 卷 + 1 网络）
 │   ├── .dockerignore            # 构建上下文排除规则
 │   └── .env.example             # 环境变量模板
 ├── nginx/
@@ -251,8 +259,9 @@ docker run --rm -v nanshan-nav-uploads:/data -v "$BACKUP_DIR":/backup alpine \
     tar czf /backup/uploads.tar.gz -C /data .
 docker run --rm -v authelia-db:/data -v "$BACKUP_DIR":/backup alpine \
     tar czf /backup/authelia-db.tar.gz -C /data .
-docker run --rm -v redis-data:/data -v "$BACKUP_DIR":/backup alpine \
-    tar czf /backup/redis-data.tar.gz -C /data .
+# 如启用 Redis，取消以下注释：
+# docker run --rm -v redis-data:/data -v "$BACKUP_DIR":/backup alpine \
+#     tar czf /backup/redis-data.tar.gz -C /data .
 
 echo "备份完成，文件保存在 $BACKUP_DIR"
 ```
@@ -268,8 +277,9 @@ docker run --rm -v nanshan-nav-uploads:/data -v "$RESTORE_DIR":/restore alpine \
     tar xzf /restore/uploads.tar.gz -C /data
 docker run --rm -v authelia-db:/data -v "$RESTORE_DIR":/restore alpine \
     tar xzf /restore/authelia-db.tar.gz -C /data
-docker run --rm -v redis-data:/data -v "$RESTORE_DIR":/restore alpine \
-    tar xzf /restore/redis-data.tar.gz -C /data
+# 如启用 Redis，取消以下注释：
+# docker run --rm -v redis-data:/data -v "$RESTORE_DIR":/restore alpine \
+#     tar xzf /restore/redis-data.tar.gz -C /data
 
 echo "恢复完成"
 ```
@@ -328,7 +338,7 @@ docker compose logs authelia | tail -30
 - `AUTHELIA_PASSWORD` 是明文密码，不是 bcrypt 哈希
 - `JWT_SECRET` 或 `SESSION_SECRET` 未设置或为空
 - Authelia 配置文件中 `jwt_secret` 或 `session.secret` 与环境变量不一致
-- Authelia 无法连接 Redis（检查 Redis 容器状态）
+- 启用了 Redis 但未取消注释 `docker-compose.yml` 中的 `redis` 服务和 `redis-data` 卷
 
 ### 后端启动失败
 

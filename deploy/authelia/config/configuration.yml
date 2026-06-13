@@ -19,15 +19,17 @@ authentication_backend:
   file:
     path: /config/users.yml
 
-# Session management — stored in Redis for persistence
+# Session management — stored in Authelia memory (lightweight, no Redis needed)
+# Uncomment the `redis:` block below (and the redis service in docker-compose.yml)
+# to use Redis for persistent session storage across restarts.
 session:
   name: authelia_session
   secret: ${SESSION_SECRET}
   expiration: 3600    # 1 hour
   inactivity: 300      # 5 minutes
-  redis:
-    host: redis
-    port: 6379
+  # redis:
+  #   host: redis
+  #   port: 6379
 
 # Storage — SQLite database for user/device tracking
 storage:
