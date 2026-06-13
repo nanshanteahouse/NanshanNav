@@ -1,0 +1,60 @@
+# authelia/config/configuration.yml
+# Authelia authentication server for NanshanNav Docker deployment
+
+host: 0.0.0.0
+port: 9091
+
+log:
+  level: info
+  format: text
+
+theme: auto
+
+# JWT secret for signing and verifying authentication tokens
+jwt:
+  secret: ${JWT_SECRET}
+
+# Authentication backend — file-based user database
+authentication_backend:
+  file:
+    path: /config/users.yml
+
+# Session management — stored in Redis for persistence
+session:
+  name: authelia_session
+  secret: ${SESSION_SECRET}
+  expiration: 3600    # 1 hour
+  inactivity: 300      # 5 minutes
+  redis:
+    host: redis
+    port: 6379
+
+# Storage — SQLite database for user/device tracking
+storage:
+  local:
+    path: /db/authelia.db
+
+# Access control rules
+access_control:
+  default_policy: deny
+  rules:
+    - domain: "*"
+      resources:
+        - "^/admin(/.*)?$"
+      policy: one_factor
+    - domain: "*"
+      resources:
+        - "^/api/(?!health-check).*"
+      policy: one_factor
+
+# NTP for TOTP (if used)
+ntp:
+  address: time.cloudflare.com
+  version: 3
+  max_desync: 3s
+
+# Rate limiting
+regulation:
+  max_retries: 5
+  find_time: 2m
+  ban_time: 5m

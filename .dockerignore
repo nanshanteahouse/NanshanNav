@@ -1,0 +1,24 @@
+# Node.js dependencies (massive, can be rebuilt via npm ci)
+node_modules/
+
+# Git metadata (not needed inside container)
+.git/
+
+# Build output (rebuilt inside container)
+dist/
+
+# OpenCode workspace artifacts
+.omo/
+
+# Sisyphus workspace artifacts
+.sisyphus/
+
+# Environment files (secrets, should never be in image)
+.env
+*.service.example
+
+# Entrypoint script (not needed in production image)
+start.sh
+
+# Uploaded favicons (placeholder/dynamic content, not part of build)
+uploads/favicons/

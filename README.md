@@ -25,6 +25,7 @@
 - [项目结构](#项目结构)
 - [配置说明](#配置说明)
 - [部署指南](#部署指南)
+- [Docker 部署](#docker-部署)
 - [API 接口](#api-接口)
 - [后端架构](#后端架构)
 - [状态管理](#状态管理)
@@ -480,6 +481,171 @@ sudo systemctl enable --now nanshan-nav-backend
 - SPA 路由处理（`try_files $uri $uri/ /index.html`）
 - `/admin` 路径的 Authelia 认证保护
 - 上传文件缓存策略（`expires 30d; Cache-Control: public, immutable`）
+
+---
+
+## 🐳 Docker 部署
+
+> 使用 Docker Compose 一键部署 NanshanNav 完整服务栈（Nginx + Backend + Authelia + Redis）。
+
+### 前置要求
+
+- Docker ≥ 24.x
+- Docker Compose ≥ v2.x
+- 确保主机 `8080` 端口可用（或修改 `.env` 中 `NGINX_HTTP_PORT`）
+
+### 快速开始
+
+```bash
+# 1. 准备环境变量
+cp docker/.env.example .env
+
+# 2. 编辑 .env 文件，至少填入以下必填项：
+#    - PVE_ENCRYPTION_KEY  (生成: openssl rand -hex 32)
+#    - JWT_SECRET          (生成: openssl rand -hex 32)
+#    - SESSION_SECRET      (生成: openssl rand -hex 32)
+#    - AUTHELIA_PASSWORD   (bcrypt 哈希，生成方式见 .env 注释)
+
+# 3. 生成 Authelia 密码哈希（替换 'your-password' 为你的密码）
+docker run --rm ghcr.io/authelia/authelia:4.38 authelia hash-password 'your-password'
+# 将输出的哈希值填入 .env 的 AUTHELIA_PASSWORD
+
+# 4. 构建镜像并启动所有服务
+docker compose up -d
+
+# 5. 访问
+#    http://localhost:8080       — 仪表盘（无需登录）
+#    http://localhost:8080/admin — 编辑模式（需要 Authelia 登录）
+```
+
+### 服务架构
+
+```
+                          ┌─────────────────────────┐
+                          │   Nginx (:8080 → :80)   │
+                          │   反向代理 + Authelia    │
+                          └──────┬────────┬─────────┘
+                                 │        │
+                    ┌────────────┘        └───────────┐
+                    ▼                                  ▼
+          ┌─────────────────┐              ┌──────────────────┐
+          │   Backend :3001  │              │   Authelia :9091 │
+          │   Hono.js API    │              │   认证服务        │
+          │   + SPA 静态服务  │              └────────┬─────────┘
+          └─────────────────┘                       │
+                                                    ▼
+                                          ┌──────────────────┐
+                                          │   Redis :6379     │
+                                          │   会话存储         │
+                                          └──────────────────┘
+```
+
+### 环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `PORT` | `3001` | 后端端口（内部） |
+| `UPLOAD_DIR` | `/app/uploads` | 上传文件目录（容器内） |
+| `PVE_API_TOKEN` | — | Proxmox VE API 令牌（可选） |
+| `PVE_ENCRYPTION_KEY` | — | **必填** — 令牌加密密钥 (32 字节 hex) |
+| `JWT_SECRET` | — | **必填** — Authelia JWT 密钥 |
+| `SESSION_SECRET` | — | **必填** — Authelia 会话密钥 |
+| `AUTHELIA_USER` | `admin` | Authelia 后台用户名 |
+| `AUTHELIA_PASSWORD` | — | **必填** — bcrypt 密码哈希 |
+| `NGINX_HTTP_PORT` | `8080` | Nginx HTTP 宿主机端口 |
+| `NGINX_HTTPS_PORT` | `8443` | Nginx HTTPS 宿主机端口 |
+
+### 持久化数据
+
+所有 Docker 命名卷位置（`docker volume ls` 可查看）：
+
+| 卷名称 | 用途 | 容器内路径 |
+|--------|------|-----------|
+| `nanshan-nav-config` | 仪表盘配置 + PVE 令牌 + 加密密钥 | `/app/server/config` |
+| `nanshan-nav-uploads` | 上传的图片文件 + Favicon 缓存 | `/app/uploads` |
+| `authelia-db` | Authelia 用户/设备数据库 | `/db` |
+| `redis-data` | Redis 会话数据 | `/data` |
+
+### 备份与恢复
+
+```bash
+# 备份所有数据卷
+BACKUP_DIR="/backup/nanshan-nav-$(date +%Y%m%d)"
+mkdir -p "$BACKUP_DIR"
+
+docker run --rm -v nanshan-nav-config:/data -v "$BACKUP_DIR":/backup alpine \
+    tar czf /backup/config.tar.gz -C /data .
+docker run --rm -v nanshan-nav-uploads:/data -v "$BACKUP_DIR":/backup alpine \
+    tar czf /backup/uploads.tar.gz -C /data .
+docker run --rm -v authelia-db:/data -v "$BACKUP_DIR":/backup alpine \
+    tar czf /backup/authelia-db.tar.gz -C /data .
+docker run --rm -v redis-data:/data -v "$BACKUP_DIR":/backup alpine \
+    tar czf /backup/redis-data.tar.gz -C /data .
+
+echo "Backup saved to $BACKUP_DIR"
+```
+
+### 从现有部署迁移
+
+如果你已有 NanshanNav 运行数据，可将其导入 Docker 卷：
+
+```bash
+# 1. 启动服务一次以创建卷（然后停止）
+docker compose up -d && docker compose down
+
+# 2. 导入 config 数据
+docker run --rm -v nanshan-nav-config:/data -v /path/to/existing/server/config:/source alpine \
+    cp -r /source/. /data/
+
+# 3. 导入上传文件
+docker run --rm -v nanshan-nav-uploads:/data -v /path/to/existing/uploads:/source alpine \
+    cp -r /source/. /data/
+
+# 4. 重新启动
+docker compose up -d
+```
+
+### 故障排查
+
+#### 端口冲突
+
+如果 `8080` 端口已被占用，编辑 `.env` 文件：
+```
+NGINX_HTTP_PORT=9090
+```
+然后重启：`docker compose down && docker compose up -d`
+
+#### 认证不生效
+
+检查 Authelia 日志：
+```bash
+docker compose logs authelia | tail -20
+```
+
+确保 `.env` 中的 `AUTHELIA_PASSWORD` 是有效的 bcrypt 哈希（不是明文密码）。
+
+#### 后端启动失败
+
+检查后端日志并确认 `PVE_ENCRYPTION_KEY` 已设置：
+```bash
+docker compose logs backend | tail -20
+```
+
+#### 执行中
+
+```bash
+# 查看所有容器状态
+docker compose ps
+
+# 查看实时日志
+docker compose logs -f
+
+# 停止所有服务
+docker compose down
+
+# 停止并删除数据卷（⚠️ 会丢失所有数据）
+docker compose down -v
+```
 
 ---
 
