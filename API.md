@@ -1,218 +1,59 @@
-# NanshanNav API 参考
+# NanshanNav API
 
-家庭网络导航面板后端 API 文档。后端 Hono.js 4，默认监听 `:3001`。
-开发环境直接访问 `http://localhost:3001`，生产环境通过 nginx 以 `/api/*` 路径访问。
+Node 22+ 后端默认监听 `127.0.0.1:3001`。需要局域网直连时设置 `HOST=0.0.0.0`，无需域名或反向代理。`/` 是普通展板，`/admin` 是管理页面；所有管理接口集中在 `/api/admin` 路径下，其余 API 只允许读取。未知 API 返回 JSON 404。
 
----
+应用不提供登录、用户角色或管理员令牌认证。默认情况下，能连接应用的人就能使用管理页面和管理 API。需要访问限制时，由反向代理同时保护精确路径 `/admin`、`/api/admin` 及其所有子路径；也可以按部署需求限制整个站点。反代必须保留原始 `Host`，并防止用户绕过反代直连后端。Authelia 仅为可选示例，不是应用依赖。
 
-## 面板配置 API
+`NAV_READ_ONLY=true` 开启纯展板模式：后端对上述管理页面和管理 API 的所有请求返回404，前端不启用编辑功能；公开面板、上传图片和监控读取继续可用。默认 `false`；其他非空值会阻止启动，避免配置拼错后意外开启管理。此选项关闭管理功能，不限制展板数据的读取，也不表示禁止 favicon 缓存等内部文件写入。
 
-面板的布局、组件、设置等配置通过此接口持久化。数据存储于 `server/config/dashboard-state.json`。
+保留请求完整性校验：公共 API 的写入方法返回405；管理写请求如果携带不同 Host 的 `Origin` 或 `Sec-Fetch-Site: cross-site`，返回403。这不是身份认证，无浏览器来源头的直接客户端仍可管理。应用不读取 `Authorization`、`X-Nav-User`、`X-Nav-Groups` 或网关共享密钥。
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/dashboard` | 加载已保存配置（首次返回 404） |
-| PUT | `/api/dashboard` | 保存配置 |
+| 方法、路径 | 契约 |
+| --- | --- |
+| GET `/api/status` | 本地进程存活：`{ok:true}`；不发出外部网络请求 |
+| GET `/api/capabilities` | `{readOnly:boolean}`；禁止缓存，用于前端决定是否启用管理功能 |
+| GET `/api/embed-policy` | `{origins:string[]}`；来自 `NAV_EMBED_ORIGINS` 精确origin列表 |
+| GET `/api/admin/pve/hosts` | 返回 `[{id,label,origin}]` |
+| GET `/api/pve/nodes` | 只读监控；必须传 `X-PVE-Host-ID` |
+| GET `/api/pve/nodes/:node/status` | node仅允许字母、数字、下划线、连字符 |
+| GET `/api/pve/cluster/resources` | 可选 `type=vm/storage/node`；其余查询参数丢弃 |
+| GET/PUT/DELETE `/api/admin/pve/tokens` | 管理接口；GET/DELETE `?hostId=home`；PUT `{hostId:"home",token:"user@realm!id=secret"}`。只返回存在状态或全掩码 |
+| GET `/api/health-check?serviceId=nas` | 仅登记目标发HEAD，5秒超时，无GET回退，无重定向；`{reachable,statusCode?,lastSuccessAt?,lastFailureAt?,history}`；history保留最近20次实际检查，进程重启清空。目标结果缓存15秒，全局最多4并发、每秒补1次额度（上限60），超限429 |
+| GET `/api/favicon?url=https%3A%2F%2Fexample.com` | 只尝试同origin `/favicon.ico`、`/favicon.png`、`/assets/favicon.png`；不跟随重定向、不解析HTML。响应仅为重编码 `image/webp`，绝不透传远端MIME |
+| POST `/api/admin/upload` | 管理接口，multipart字段 `image`；输入≤20MB，输出 `{url:"/uploads/<uuid>.webp"}`；支持JPEG/PNG/GIF/WebP，动画仅首帧；禁用SVG/BMP/HTML，像素上限4000万，输出最大4096×4096 |
+| GET `/uploads/:filename` | 只提供UUID格式的图片名，并重新解码为WebP；旧HTML/SVG或任意路径不再提供 |
 
-### GET /api/dashboard
+PVE主机通过 `NAV_PVE_HOSTS_JSON='[{"id":"home","url":"https://pve.lan:8006","addresses":["192.168.1.10"]}]'` 注册。只能使用HTTPS origin；凭据按ID绑定，任何HTTP、任意目标、未允许路径、写入方法或重定向均拒绝。旧 `X-PVE-Host`/令牌管理 `host` 仅在精确匹配登记ID、origin或host:port时兼容。默认令牌和 `PVE_API_TOKEN` 环境回退已移除；旧按主机加密令牌只向精确匹配的登记origin迁移，不读取明文令牌。
 
-```json
-// 200 — 成功
-{
-  "settings": { "themeMode": "dark", "cellSize": 50 },
-  "layouts": {
-    "lg": [{ "i": "abc", "x": 0, "y": 0, "w": 3, "h": 2 }],
-    "md": [], "sm": [], "xs": [], "xxs": []
-  },
-  "widgets": [{ "id": "abc", "type": "clock", "options": {} }],
-  "updatedAt": "2026-06-13T10:00:00.000Z"
-}
-// 404 — 从未保存
-{ "error": "No dashboard config yet" }
-```
+健康目标通过 `NAV_HEALTH_TARGETS_JSON='[{"id":"nas","url":"http://192.168.1.20/"}]'` 登记；旧 `?url=` 仅在规范化后与登记完整URL完全一致时兼容。允许家庭内网目标。两种登记目标使用域名时必须设置 `addresses` 固定允许的IP，直接使用IP URL则可省略；每次请求解析DNS，检查所有结果并将socket固定到验证后的地址。域名未配置addresses时后端拒绝启动。
 
-### PUT /api/dashboard
+Favicon任意公开站点只允许公网解析地址；私网favicon必须与登记服务/PVE目标的origin一致，遵守相同addresses限制。每次下载≤2MB，3秒超时，全局最多4并发、每2秒补1额度（上限30）；服务器缓存7天。PNG容器ICO可解码，传统DIB ICO暂不支持。旧favicon缓存不再读取。所有图像响应包含nosniff和限制性CSP。
 
-请求体须包含 `settings`（对象）、`layouts`（对象）、`widgets`（数组），缺少任一返回 400。
+`NAV_EMBED_ORIGINS` 为逗号分隔精确HTTP(S) origin。生产SPA响应CSP以该列表收窄iframe；空值仅本站。内部自签证书使用 `NODE_EXTRA_CA_CERTS=/绝对路径/internal-ca.pem`，禁止 `NODE_TLS_REJECT_UNAUTHORIZED=0`（后端检测到会拒绝启动）。
 
-```json
-// Request
-{ "settings": { "themeMode": "dark" },
-  "layouts": { "lg": [{"i":"abc","x":0,"y":0,"w":3,"h":2}] },
-  "widgets": [{ "id": "abc", "type": "clock", "options": {} }] }
-// 200
-{ "success": true, "updatedAt": "2026-06-13T10:00:00.000Z" }
-// 400
-{ "error": "Invalid payload: settings, layouts, widgets required" }
-```
+## 面板、草稿与版本迁移
 
-服务端自动追加 `updatedAt` 时间戳，以原子方式写入（临时文件 + rename）。
+公开面板包含导航配置，请勿在其中存放密码和访问令牌。面板写入、历史读取及回滚都位于管理 API 路径；需要访问限制时在反代设置。
 
----
+| 方法、路径 | 契约 |
+| --- | --- |
+| GET `/api/dashboard` | 返回完整文档及 `revision`、`updatedAt`，HTTP `ETag` 与 revision 相同；未创建时404和 `ETag: "0"`。所有响应禁止缓存 |
+| PUT `/api/admin/dashboard` | JSON完整文档，必须传 `If-Match: <GET得到的ETag>`；首次创建传 `If-Match: "0"`（引号属于值）。成功返回 `{success:true,revision,updatedAt}` 和新ETag |
+| GET `/api/admin/dashboard/versions` | `{versions:[{revision,updatedAt,title}]}`，按新到旧排列，最多保留最近10个历史有效版本 |
+| POST `/api/admin/dashboard/rollback` | JSON `{revision:"\"历史revision\""}`，`If-Match`必须等于当前ETag；立即恢复指定版本，生成新revision，并先归档当前版本。成功返回恢复后的完整文档和新ETag |
 
-## 上传 API
+缺少 `If-Match` 返回428；当前版本已改变返回412，绝不覆盖新版本；schema不合法返回400；JSON请求体上限20MiB（包括没有Content-Length的请求），超限413；写入或持久化确认失败返回500。遇到500应先读取最新ETag，再决定是否重试，因为原子替换可能已完成而后续确认失败。每个进程串行检查版本与写入，以临时文件写入、fsync、原子rename更新主文件，原文件中断时仍保持完整。请使用一个后端写入进程管理同一配置目录；这不是跨主机分布式锁。主文件损坏时GET返回500并附 `X-Dashboard-Recovery: available`，编辑器可用历史版本恢复；此种恢复使用 `If-Match: "0"`。
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/upload` | 上传图片（字段 `image`，`multipart/form-data`） |
+文档格式为 `{schemaVersion:1,settings,layouts,widgets}`。`layouts` 必须包含 `lg/md/sm/xs/xxs` 五个数组，引用存在且唯一的widget ID，并使用合法整数坐标和尺寸。组件类型限定现有8种，选项、链接、tags和时区均验证；旧版缺失选项会补安全默认值。旧JSON导出的 `version:"1.0.0"` 和没有schemaVersion的历史文件继续可读；旧 `darkMode` 迁移到 `themeMode`。前后端复用 `src/lib/dashboard-schema.ts`。
 
-### POST /api/upload
+普通展板从服务端读取已保存内容，不显示或覆盖管理页面的本机草稿。应用仅在根节点初始化读取一次；手机菜单挂载不会重新读取。编辑内容实时保存在浏览器草稿，迟到GET不覆盖草稿；已有revision的草稿保留原版本用于冲突检查。保存成功且保存期间没有新编辑时才退出编辑，失败保留草稿。刷新自动恢复本机草稿；损坏localStorage会隔离到 `dashboard-storage-recovery-<时间戳>`，显示恢复提示并加载安全默认状态。导入先校验整份文档、显示预览，再一次性替换；导入可撤销，服务端仍需点击保存。
 
-- 最大大小: **20MB**
-- 允许类型: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`, `image/bmp`
-- 验证: MIME 类型白名单 + 魔术字节（Magic Bytes）双重校验
+“完整备份”由浏览器导出JSON：`{...文档,backupVersion:1,exportedAt,assets:[{path,mime,data}]}`。`data`为base64，包最大100MB，包含当前草稿引用的本机上传图片及图标；已嵌入的data URL保留在文档内，外部图片保留原URL。恢复先完整校验，随后用 `POST /api/admin/upload` 的multipart `image`字段上传所有图片并替换新路径，全部成功后才提交面板；中途失败不会替换当前面板。图片上传成功但后续导入失败时可能留下未引用的图片文件。普通旧JSON仍可导入，其图片路径需要在目标实例存在。
 
-| 类型 | 魔术字节 |
-|------|---------|
-| JPEG | `FF D8 FF` |
-| PNG | `89 50 4E 47` |
-| GIF | `47 49 46` |
-| WebP | `52 49 46 46` |
+升级前建议备份 `server/config/dashboard-state.json`、`server/config/dashboard-versions/`、`uploads/`。该配置目录应持久化并限制文件权限；历史面板与图片需一起迁移。
 
-SVG 和 BMP 无可信固定签名，仅校验 MIME 类型。
+## 从旧版认证方案迁移
 
-```json
-// 200
-{ "url": "/uploads/<uuid>.<ext>" }
-// 400 — 未上传
-{ "error": "No file uploaded. Use field name \"image\"." }
-// 415 — 类型不支持 / 魔术字节不匹配
-{ "error": "Invalid file type: ..." }
-{ "error": "File content does not match its MIME type." }
-// 413 — 超过限制
-{ "error": "File too large. Max: 20 MB. Received: 25.00 MB" }
-```
+移除 `NAV_ADMIN_TOKEN`、`NAV_GATEWAY_SECRET` 和 `/api/session`。不要继续使用旧 URL 写入：保存、上传、版本列表/回滚以及 PVE 主机登记列表和凭据管理均迁至 `/api/admin/*`；公开 `GET /api/dashboard` 与 PVE 监控读取保留原路径。旧管理路径没有兼容写入别名，以免绕过反代对新路径的限制。
 
----
-
-## PVE 代理 API
-
-挂载 `/api/pve/*`，提供 Proxmox VE API 代理转发与令牌管理。
-
-**环境变量**: `PVE_API_TOKEN`（非 `VITE_PVE_API_TOKEN`，旧版 README 有误）
-
-**令牌加密**: AES-256-GCM（32 字节密钥，16 字节 IV）。密钥来源: `PVE_ENCRYPTION_KEY` > `server/config/.pve-key`（首次自动生成，`0o600`）。写入采用原子方式（`.tmp` + `rename`）。
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/pve/tokens?host=` | 查询令牌状态（返回掩码后信息） |
-| PUT | `/api/pve/tokens` | 保存令牌（自动加密存储） |
-| DELETE | `/api/pve/tokens?host=` | 删除指定主机令牌 |
-| ALL | `/api/pve/*` | 代理转发到 Proxmox VE API |
-
-**GET /api/pve/tokens**: 参数 `host` 或 `X-PVE-Host` 请求头。掩码规则: 前 5 + `****` + 后 4。
-
-```json
-{ "hasToken": true, "masked": "monit****xyz", "source": "host" }
-{ "hasToken": false }
-```
-
-**PUT /api/pve/tokens**: `host` 为 `"default"` 或省略时保存为默认令牌。
-
-```json
-// Request & 200
-{ "host": "pve.lan:8006", "token": "monitor@pve!dashboard=secret" }
-{ "masked": "monit****cret" }
-```
-
-**DELETE /api/pve/tokens**: 必须指定 `host`，删除不存在的 host 也返回成功。
-
-```json
-{ "success": true }
-```
-
-**ALL /api/pve/***: 映射 `/api/pve/<path>` 到 `https://{host}/api2/json/<path>`。
-
-- 目标主机: `X-PVE-Host` 请求头（默认 `pve.lan:8006`）
-- 认证: `Authorization: PVEAPIToken=<token>`
-- 令牌查找: 主机专用 > `default` > `PVE_API_TOKEN` 环境变量
-- 超时: **30 秒**（AbortController）
-- 响应: JSON 原样透传，非 JSON 截取 500 字符以 `{ raw }` 包裹
-
-```json
-// 502 — 无令牌
-{ "error": "No PVE API token configured" }
-// 504 — 超时
-{ "error": "Request to PVE timed out" }
-// 502 — 连接失败 / 认证失败
-{ "error": "Bad Gateway", "detail": "Cannot reach PVE host" }
-```
-
----
-
-## Favicon 代理 API
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/favicon?url=` | 代理获取网站 favicon |
-
-### 4 层回退链
-
-远比简单的 HTTPS→HTTP 复杂:
-
-| 层级 | 策略 | 超时 |
-|------|------|------|
-| 1 | `https://{host}/favicon.ico` | 5s |
-| 2 | `http://{host}/favicon.ico` | 5s |
-| 3 | 依次尝试 8 个常见路径: `/favicon.png`, `/favicon.svg`, `/static/favicon.ico`, `/static/icons/favicon.ico`, `/icons/favicon.ico`, `/assets/favicon.ico`, `/assets/favicon.png` | 各 3s |
-| 4 | 抓取首页 HTML，正则解析 `<link rel="icon">` href（兼容 `rel` 在前和 `href` 在前两种顺序），提取绝对 URL 后获取 | 5s |
-
-全部失败返回 404。
-
-### 服务端缓存
-
-| 项目 | 说明 |
-|------|------|
-| 目录 | `uploads/favicons/` |
-| 文件 | `<hostname的MD5哈希>.ico` + `<md5>.meta.json`（contentType） |
-| 有效期 | **7 天**（基于文件 mtime） |
-| HTTP 缓存 | `Cache-Control: public, max-age=86400`（1 天） |
-
-```json
-// 404
-{ "error": "Favicon not found" }
-// 502
-{ "error": "Failed to fetch favicon" }
-```
-
----
-
-## 链接健康检查 API
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/health-check?url=` | 检测目标 URL 可达性 |
-
-服务端代理发起请求，避免浏览器跨域限制。
-
-- 优先 **HEAD**（超时 5 秒），收到 **405** 自动回退 **GET**
-- 仅允许 `http:` / `https:` 协议
-
-```json
-// 200 — 可达
-{ "reachable": true, "statusCode": 200 }
-// 200 — 不可达
-{ "reachable": false, "error": "fetch failed" }
-// 400 — 参数缺失 / URL 格式错误
-{ "error": "Missing url" }
-```
-
----
-
-## 静态文件
-
-| 路径 | 说明 |
-|------|------|
-| `/uploads/*` | 上传图片文件（Hono `serveStatic`，根 `uploads/`） |
-
-### SPA 静态路由（后端直接部署时）
-
-后端直接部署（无 nginx）时托管前端构建产物。生产环境建议 nginx 托管静态文件，后端仅处理 `/api/*`。
-
-| 路径 | 说明 | 缓存策略 |
-|------|------|----------|
-| `/favicon.svg` | SPA 站点图标 | 默认 |
-| `/assets/*` | 构建产物（文件名含内容哈希） | `max-age=31536000, immutable` |
-| `/*` | SPA 回退（`dist/index.html`） | `no-cache, no-store, must-revalidate` |
-
-`/assets/*` 可永久缓存。`index.html` 禁用缓存，确保加载最新资源引用并支持客户端路由（如 `/admin`）的正确回退。
+已有反代部署应先调整管理路径的访问策略，再开放新版。只保护 `/admin` 页面不足以限制写入。无需认证的局域网部署可以直接运行；纯展示实例使用 `NAV_READ_ONLY=true`。旧版内置令牌不会再限制访问。

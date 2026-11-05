@@ -20,7 +20,7 @@ NanshanNav/
 │
 ├── server/                   # 后端源码（Hono.js）
 │   ├── tsconfig.json
-│   ├── index.ts              # 入口：路由、静态文件、SPA
+│   ├── index.ts / app.ts     # 启动入口 / 应用路由与静态文件
 │   ├── config/               # pve-tokens.json, .pve-key
 │   ├── routes/pve-proxy.ts   # PVE 代理 + 令牌管理
 │   └── lib/
@@ -41,7 +41,7 @@ NanshanNav/
 │   ├── i18n/                 # zh-CN, en
 │   ├── lib/                  # constants, api/, utils/
 │   ├── styles/               # globals.css, widgets.css
-│   └── __tests__/            # 18 个测试文件
+│   └── __tests__/            # 组件、数据与交互测试
 │
 ├── dist/ / uploads/ / public/ / node_modules/
 ```
@@ -61,27 +61,30 @@ NanshanNav/
 
 ### 路由总览
 
-所有路由定义在 `server/index.ts`（除 PVE 代理在 `routes/pve-proxy.ts`）：
+`server/index.ts` 启动监听，`server/app.ts` 组装应用，业务路由位于 `server/routes/`。应用不负责身份认证；普通展板与管理路径分离，部署反代可选择限制管理入口或整个站点。无需域名、反代或登录也可运行。
 
 | 路径 | 方法 | 说明 |
 |------|------|------|
-| `/api/dashboard` | GET / PUT | 面板配置读写 |
-| `/api/upload` | POST | 图片上传（20MB, 6 种 MIME, Magic Bytes） |
-| `/api/favicon?url=` | GET | Favicon 代理（4 层回退） |
-| `/api/health-check?url=` | GET | 链接可达性检测 |
-| `/api/pve/*` | ALL | 委托 pve-proxy.ts |
-| `/uploads/*` | GET | 静态文件服务 |
-| `/*` | GET | SPA 回退（index.html） |
+| `/` | GET | 普通展板，不启用编辑或读取管理草稿 |
+| `/admin`、`/admin/*` | GET | 管理页面，由部署者决定访问限制 |
+| `/api/capabilities` | GET | `{readOnly:boolean}` |
+| `/api/dashboard` | GET | 已保存面板配置及 ETag |
+| `/api/admin/dashboard` | PUT | 校验文档与 If-Match 后原子保存 |
+| `/api/admin/dashboard/versions` | GET | 历史版本列表 |
+| `/api/admin/dashboard/rollback` | POST | 回滚并生成新版本 |
+| `/api/admin/upload` | POST | 解码并重编码图片为 WebP |
+| `/api/admin/pve/hosts` | GET | 已登记 PVE 主机列表 |
+| `/api/admin/pve/tokens` | GET / PUT / DELETE | PVE 凭据管理，不返回明文 |
+| `/api/pve/*` | GET | 限定登记目标和监控路径的公开读取 |
+| `/api/favicon?url=` | GET | 安全图标代理 |
+| `/api/health-check?serviceId=` | GET | 登记服务可达性检测 |
+| `/uploads/*` | GET | 解码并提供图片，禁止任意静态内容 |
 
-### Favicon 代理
+`server/lib/access.ts` 负责管理路径边界和跨站写入校验，不识别用户、令牌或网关身份。`NAV_READ_ONLY=true` 在后端关闭 `/admin`、`/api/admin` 及其所有子路径；前端读取 capabilities 后决定是否启用管理。其他 API 禁止写入。完整接口及迁移说明见 [API.md](./API.md)。
 
-回退链（4 层）:
-1. `https://{host}/favicon.ico`
-2. `http://{host}/favicon.ico`
-3. 8 种备选路径（/favicon.png, /favicon.svg, /static/favicon.ico 等）
-4. HTML 解析 `<link rel="icon">`
+### Favicon 与出站请求
 
-缓存: 服务端 7 天（MD5 哈希 + .meta.json），HTTP 响应 1 天（max-age=86400）
+Favicon 只尝试同 origin 的 `/favicon.ico`、`/favicon.png`、`/assets/favicon.png`，不解析 HTML、不跟随重定向；响应为解码后重新编码的 WebP。缓存保留 7 天。出站请求校验 DNS/IP 并固定连接地址；内网服务必须登记，域名目标配置允许 IP。TLS 校验保持开启。
 
 ### 加密存储
 
@@ -107,17 +110,9 @@ PVE 令牌使用 **AES-256-GCM**:
 
 ### 双层持久化
 
-```
-localStorage (zustand persist)
-  └─ 键: "dashboard-storage"
-  └─ partialize: settings / layouts / widgets
-  └─ merge: darkMode → themeMode 自动迁移
+管理页面使用 localStorage 保存草稿，包含文档、dirty 状态和服务端 revision；普通展板不读取或覆盖这份草稿，只加载已保存的服务端面板。损坏草稿会隔离保留，迟到的网络读取不会覆盖管理编辑。
 
-服务端同步 (useServerSync hook)
-  ├─ 页面加载: GET /api/dashboard → 覆盖本地
-  ├─ 退出编辑: saveToServer() → PUT /api/dashboard
-  └─ authState: loading | authenticated | unauthenticated
-```
+`useServerSync` 在应用根节点初始化。保存使用 `PUT /api/admin/dashboard`，成功后更新 ETag，失败保留编辑状态；后端串行检查版本，原子替换文件并保留最近 10 个历史版本。前端可导出含上传图片的完整备份。
 
 ### 响应式断点
 
@@ -170,7 +165,7 @@ npm run format       # Prettier
 ### 测试
 
 - **Vitest** + **Testing Library**
-- 18 个测试文件分布于 components/ / store/ / lib/ / hooks/
+- 前端测试分布于 components/、store/、lib/、hooks/、data/；后端路由与安全测试位于 server/tests/，运行 `npm run test:server`。
 
 ### 组件生态
 

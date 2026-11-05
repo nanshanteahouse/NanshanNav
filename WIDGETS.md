@@ -246,7 +246,7 @@ export interface LinkItem {
 | `customEngineUrl` | `string` | `''` | 自定义搜索引擎 URL，需包含 `{query}` 占位符 |
 | `enableLocalSearch` | `boolean` | `true` | 是否启用本地搜索（页内组件标题和内容） |
 | `placeholder` | `string` | `'搜索或按 Ctrl+K...'` | 输入框占位文字 |
-| `ctrlKEnabled` | `boolean` | `true` | 是否启用 Ctrl+K 快捷键聚焦搜索框 |
+| `ctrlKEnabled` | `boolean` | `true` | 旧字段保留兼容；Ctrl/⌘+K 现在统一打开全局搜索，不由组件控制 |
 
 `customEngineUrl` 格式示例：`https://search.example.com?q={query}`。本地搜索会遍历当前仪表盘所有组件的标题和部分文本内容进行模糊匹配。
 
@@ -286,7 +286,7 @@ export interface LinkItem {
 | `fill` | 拉伸至填满容器，不保持宽高比 |
 | `original` | 按图片原始尺寸显示，超出部分滚动 |
 
-上传的图片通过后端 `/api/upload` 接口存储，支持 JPEG/PNG/GIF/WebP/SVG/BMP 格式，最大 20MB。
+上传的图片通过后端 `/api/admin/upload` 接口存储，支持 JPEG/PNG/GIF/WebP 格式，最大 20MB；服务端重新编码为 WebP（动画保留首帧），禁用 SVG/BMP/HTML。
 
 ---
 
@@ -348,3 +348,5 @@ export interface MyWidgetOptions {
 ### 组件尺寸体系
 
 `defaultSize` 和 `minSize` 的单位是网格单元格。仪表盘布局使用 `react-grid-layout`，网格列数随断点变化：lg 12 列、md 10 列、sm 6 列、xs 4 列、xxs 2 列。组件的 `w` 值在这些列数范围内自动适配。
+
+链接可添加逗号分隔的标签，供全局搜索使用。PVE 只能选择服务端登记主机；网页嵌入需要管理员配置 NAV_EMBED_ORIGINS，目标站点也必须允许嵌入。

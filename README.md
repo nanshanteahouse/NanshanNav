@@ -81,7 +81,7 @@ CSP 头配置、PVE 令牌 AES-256-GCM 加密存储、文件上传 MIME + 魔术
 
 ### 前置要求
 
-- **Node.js** ≥ 20.x
+- **Node.js** ≥ 22.x
 - **npm** ≥ 9.x
 
 ### 安装与运行
@@ -94,8 +94,9 @@ cd NanshanNav
 # 2. 安装依赖
 npm install
 
-# 3. （可选）配置环境变量
+# 3. 配置环境变量
 cp .env.example .env
+# 无需登录或令牌；仅展示时可设置 NAV_READ_ONLY=true
 
 # 4. 同时启动前后端开发服务器
 ./deploy/scripts/start.sh
@@ -113,6 +114,8 @@ npm run dev:all
 - **仪表盘**: `http://localhost:5173`
 - **编辑模式**: `http://localhost:5173/admin`
 - **后端 API**: `http://localhost:3001`
+
+应用不内置认证或用户权限。`/` 用于公开展示，`/admin` 和 `/api/admin/*` 提供管理功能；可直接在局域网使用，需要访问控制时由反向代理同时保护管理页面和管理 API。`NAV_READ_ONLY=true` 会关闭两类管理入口及子路径。
 
 ---
 
@@ -139,14 +142,14 @@ NanshanNav 内置 **8 种组件**，采用组件注册表模式动态加载：
 
 ### Docker（推荐）
 
-一键启动 Nginx + Backend + Authelia 完整服务栈（Redis 可选，默认不启用）：
+默认只启动一个后端容器，同时提供前端和 API。无需域名或认证服务，可通过局域网 IP 直接访问：
 
 ```bash
 cp deploy/docker/.env.example .env
-cd deploy/docker && docker compose up -d
+docker compose --env-file .env -f deploy/docker/docker-compose.yml up -d --build
 ```
 
-完整指南 → [DOCKER.md](./DOCKER.md)
+访问 `http://服务器IP:3001/`，管理入口为 `/admin`。Authelia 是单独的可选 Compose 示例；依赖代理认证时必须避免直接访问后端端口。完整指南 → [DOCKER.md](./DOCKER.md)
 
 ### systemd 服务
 
@@ -154,7 +157,7 @@ cd deploy/docker && docker compose up -d
 
 ### Nginx 反向代理
 
-参考 `deploy/nginx/nginx.conf.example` 配置 SPA 路由、Authelia 认证。
+可选 Authelia 示例见 `deploy/nginx/nginx.conf.example`。代理需要同时保护 `/admin`、`/api/admin` 及全部子路径，并把静态资源和上传图片交给后端提供，以保留 CSP 和图片校验。
 
 ---
 
@@ -174,13 +177,15 @@ cd deploy/docker && docker compose up -d
 ### 如何配置 PVE 监控？
 
 1. 在 Proxmox VE 中创建 API 令牌（推荐 `monitor` 角色，只读权限）
-2. 配置到 `server/config/pve-tokens.json` 或环境变量 `PVE_API_TOKEN`
-3. 在编辑模式下添加 "PVE 状态" 组件，配置主机地址和节点名称
+2. 在服务端 `NAV_PVE_HOSTS_JSON` 登记 HTTPS 主机和固定 IP，内部证书通过 `NODE_EXTRA_CA_CERTS` 信任
+3. 打开 `/admin` 管理页；如部署了代理认证，先通过代理登录
+4. 在 PVE 组件设置中选择已登记主机、配置节点并保存对应令牌；默认令牌回退已移除
 
 ### 如何备份仪表盘配置？
 
-- **自动备份**: 退出编辑模式时自动保存到 `server/config/dashboard-state.json`
-- **手动备份**: 工具栏导出功能，导出为 JSON 文件
+- **保存与草稿**：保存成功才退出编辑；失败保留本机草稿，服务器保存使用版本冲突检测
+- **完整备份**：工具栏导出 JSON 包含本地上传图片，可在另一实例恢复；外部图片保留 URL
+- **版本回滚**：工具栏可查看并恢复最近 10 个已保存版本
 
 ### 文件上传位置？
 
@@ -191,3 +196,13 @@ cd deploy/docker && docker compose up -d
 ## 许可证
 
 本项目为私有项目，保留所有权利。
+
+## 本轮改进
+
+- 部署边界：展示与管理路径分离，可选代理认证；PVE 凭据绑定登记主机、内网检查白名单、上传和 favicon 安全重编码。旧管理 API 已迁到 `/api/admin/*`，迁移步骤见 [DOCKER.md](./DOCKER.md)。
+- 编辑：手机尺寸/移动控件、布局撤销、键盘焦点管理、明确保存状态和失败重试。
+- 快速开始：侧栏提供家庭/工作/极简模板，以及浏览器书签 HTML 导入、预览与去重。
+- 搜索：Ctrl/⌘+K 统一搜索链接名称、描述、网址及标签，Ctrl/⌘+Enter 新标签打开。
+- 状态：登记服务可查看最近 20 次可达性检查，重启后清空；HTTP 响应不等同于应用健康。
+
+验证命令：`npm test`、`npm run test:server`、`npm run lint`、`npm run build`、`npm run typecheck:server`。
