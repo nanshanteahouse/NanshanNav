@@ -93,11 +93,11 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # ---- Start backend (Hono) ----
-NODE_TLS_REJECT_UNAUTHORIZED=0 tsx watch server/index.ts &
+PORT="$BACKEND_PORT" ./node_modules/.bin/tsx watch --env-file-if-exists=.env server/index.ts &
 BACKEND_PID=$!
 
 # ---- Start frontend (Vite) ----
-NODE_OPTIONS='--no-deprecation' vite --port "$FRONTEND_PORT" &
+NODE_OPTIONS='--no-deprecation' ./node_modules/.bin/vite --port "$FRONTEND_PORT" &
 FRONTEND_PID=$!
 
 # ---- Wait for either process to exit ----

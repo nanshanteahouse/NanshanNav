@@ -1,12 +1,8 @@
-# authelia/config/users.yml
-# User database for Authelia authentication.
-# Password is a bcrypt hash injected via AUTHELIA_PASSWORD environment variable.
-# Generate: docker run --rm authelia/authelia:latest authelia hash-password 'your-password'
-
+# Rendered explicitly by auth-config; this database is not an Authelia environment template.
 users:
-  ${AUTHELIA_USER}:
+  "${AUTHELIA_USER}":
     password: "${AUTHELIA_PASSWORD}"
-    displayname: "Admin"
-    email: "admin@nanshan.local"
+    displayname: 'Administrator'
+    email: "${AUTHELIA_EMAIL}"
     groups:
       - admins

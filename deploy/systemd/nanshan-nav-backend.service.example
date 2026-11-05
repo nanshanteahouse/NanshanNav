@@ -21,7 +21,7 @@
 #
 # ── Verify ──
 #   sudo journalctl -u nanshan-nav-backend -f
-#   curl http://localhost:3001/api/pve/nodes
+#   curl http://localhost:3001/api/status
 #
 # ── Environment Variables ──
 #   Set these in Environment= lines below, or in a separate EnvironmentFile.
@@ -32,7 +32,8 @@
 #   UPLOAD_DIR       ./uploads      Uploaded files directory
 #   FRONTEND_PORT    5173           Vite dev frontend port (dev only)
 #   BACKEND_PORT     3001           Vite proxy target (used by deploy/scripts/start.sh)
-#   PVE_API_TOKEN       (required)  Proxmox VE API token
+#   NAV_READ_ONLY     false        Disable /admin and /api/admin (all descendants)
+#   NAV_PVE_HOSTS_JSON []           Registered HTTPS origins and allowed IPs
 #
 # ── Custom Port (outside the unit) ──
 #   sudo systemctl edit nanshan-nav-backend
@@ -60,7 +61,7 @@ User=nanshan-nav
 Group=nanshan-nav
 
 # ── Working Directory ───────────────────────────────────────────────────────
-# Deploy the built project to this path.  The Nginx root should match.
+# Deploy the built project here. The backend serves the SPA and validated uploads.
 WorkingDirectory=/var/www/nanshan-nav
 
 # ── Startup Command ────────────────────────────────────────────────────────
@@ -76,12 +77,15 @@ Environment=NODE_ENV=production
 Environment=PORT=3001
 Environment=UPLOAD_DIR=/var/www/nanshan-nav/uploads
 
-# For PVE integration, uncomment and set your token:
-# Environment=PVE_API_TOKEN=monitor@pve!dashboard=YOUR_SECRET
+# Configure NAV_PVE_HOSTS_JSON and NAV_READ_ONLY in /etc/nanshan/nav.env.
+# No built-in authentication. Keep HOST=127.0.0.1 when relying on proxy access control.
+# Set HOST=0.0.0.0 for direct LAN access if that is intended.
 
 # ── Node.js Options ─────────────────────────────────────────────────────────
 Environment=NODE_OPTIONS=--no-deprecation
-Environment=NODE_TLS_REJECT_UNAUTHORIZED=0
+# Environment=NODE_EXTRA_CA_CERTS=/etc/nanshan/internal-ca.pem
+Environment=HOST=127.0.0.1
+EnvironmentFile=/etc/nanshan/nav.env
 
 # ── Resource Limits ─────────────────────────────────────────────────────────
 # Restart on crash (with backoff)

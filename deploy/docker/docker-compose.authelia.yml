@@ -1,0 +1,99 @@
+# Optional complete stack; use this file alone, never merge with docker-compose.yml.
+# The backend intentionally has NO published port: it is reachable only on the Compose network.
+services:
+  backend:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile
+    image: nanshan-nav:latest
+    container_name: nanshan-nav-backend
+    restart: unless-stopped
+    environment:
+      PORT: "3001"
+      UPLOAD_DIR: /app/uploads
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      NAV_READ_ONLY: ${NAV_READ_ONLY:-false}
+      NAV_PVE_HOSTS_JSON: ${NAV_PVE_HOSTS_JSON:-[]}
+      NAV_HEALTH_TARGETS_JSON: ${NAV_HEALTH_TARGETS_JSON:-[]}
+      NAV_EMBED_ORIGINS: ${NAV_EMBED_ORIGINS:-}
+      PVE_ENCRYPTION_KEY: ${PVE_ENCRYPTION_KEY:-}
+    volumes:
+      - nanshan-nav-config:/app/server/config
+      - nanshan-nav-uploads:/app/uploads
+    networks:
+      - nanshan-nav
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/status', {signal: AbortSignal.timeout(3000)}).then(r => {if (!r.ok) process.exit(1)}).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  nginx:
+    image: nginx:alpine
+    container_name: nanshan-nav-nginx
+    restart: unless-stopped
+    environment:
+      NAV_DOMAIN: ${NAV_DOMAIN:?Set NAV_DOMAIN}
+      NAV_PUBLIC_URL: ${NAV_PUBLIC_URL:?Set NAV_PUBLIC_URL}
+    ports:
+      - "${NGINX_BIND_ADDRESS:-127.0.0.1}:${NGINX_HTTP_PORT:-8080}:80"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/conf.d/nav.conf:/etc/nginx/templates/default.conf.template:ro
+    networks:
+      - nanshan-nav
+    depends_on:
+      backend:
+        condition: service_healthy
+      authelia:
+        condition: service_healthy
+
+  # Explicitly renders YAML + user database; Compose does not expand bind-mounted files.
+  auth-config:
+    image: node:22-alpine
+    restart: "no"
+    command: ["node", "/scripts/render-auth-config.mjs"]
+    environment:
+      NAV_PUBLIC_URL: ${NAV_PUBLIC_URL:?Set the external HTTPS origin}
+      NAV_DOMAIN: ${NAV_DOMAIN:?Set the matching cookie domain}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET}
+      STORAGE_ENCRYPTION_KEY: ${STORAGE_ENCRYPTION_KEY:?Set STORAGE_ENCRYPTION_KEY}
+      AUTHELIA_USER: ${AUTHELIA_USER:-admin}
+      AUTHELIA_PASSWORD: ${AUTHELIA_PASSWORD:?Set AUTHELIA_PASSWORD hash}
+      AUTHELIA_EMAIL: ${AUTHELIA_EMAIL:?Set AUTHELIA_EMAIL}
+    volumes:
+      - ../authelia/config:/templates:ro
+      - ../scripts/render-auth-config.mjs:/scripts/render-auth-config.mjs:ro
+      - authelia-config:/output
+    networks:
+      - nanshan-nav
+
+  authelia:
+    image: ghcr.io/authelia/authelia:4.38.18
+    container_name: nanshan-nav-authelia
+    restart: unless-stopped
+    depends_on:
+      auth-config:
+        condition: service_completed_successfully
+    volumes:
+      - authelia-config:/config:ro
+      - authelia-db:/db
+    networks:
+      - nanshan-nav
+
+volumes:
+  nanshan-nav-config:
+    name: nanshan-nav-config
+  nanshan-nav-uploads:
+    name: nanshan-nav-uploads
+  authelia-db:
+    name: authelia-db
+  authelia-config:
+    name: nanshan-nav-authelia-config
+networks:
+  nanshan-nav:
+    name: nanshan-nav
+    driver: bridge
