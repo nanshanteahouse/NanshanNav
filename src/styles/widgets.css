@@ -74,7 +74,7 @@
 
 /* Grid Lines — Excel-style background overlay */
 .grid-lines-visible::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -82,10 +82,8 @@
   background-image:
     linear-gradient(to right, var(--text-muted) 1px, transparent 1px),
     linear-gradient(to bottom, var(--text-muted) 1px, transparent 1px);
-  background-size:
-    var(--grid-step-x, 60px) var(--grid-step-y, 60px);
-  background-position:
-    var(--grid-offset, 12px) var(--grid-offset, 12px);
+  background-size: var(--grid-step-x, 60px) var(--grid-step-y, 60px);
+  background-position: var(--grid-offset, 12px) var(--grid-offset, 12px);
   opacity: 0.22;
 }
 
@@ -134,8 +132,13 @@
 
 /* Skeleton pulse */
 @keyframes widget-skeleton-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .widget-skeleton {
@@ -201,16 +204,25 @@
   flex-shrink: 0;
 }
 
-.health-dot.online { background-color: var(--status-online); }
-.health-dot.offline { background-color: var(--status-offline); }
+.health-dot.online {
+  background-color: var(--status-online);
+}
+.health-dot.offline {
+  background-color: var(--status-offline);
+}
 .health-dot.checking {
   background-color: var(--text-muted);
   animation: health-pulse 1s ease-in-out infinite;
 }
 
 @keyframes health-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* Analog clock */
@@ -223,4 +235,40 @@
 /* Dark mode adjustments */
 [data-theme="dark"] .widget-shell {
   box-shadow: var(--shadow-widget);
+}
+
+/* The edit toolbar owns space above the content, including on touch screens. */
+.widget-editor[data-selected="true"],
+.widget-editor:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px var(--border-focus);
+}
+.widget-editor .edit-controls {
+  visibility: hidden;
+  pointer-events: none;
+}
+.widget-editor[data-selected="true"] .edit-controls,
+.widget-editor:focus-within .edit-controls {
+  visibility: visible;
+  pointer-events: auto;
+}
+.widget-drag-handle {
+  cursor: grab;
+}
+.widget-drag-handle button {
+  cursor: pointer;
+}
+
+.widget-editor {
+  container-type: inline-size;
+}
+@container (max-width: 160px) {
+  .widget-settings-trigger {
+    display: none;
+  }
+}
+@container (max-width: 88px) {
+  .widget-grip {
+    display: none;
+  }
 }

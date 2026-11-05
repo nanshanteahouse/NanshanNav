@@ -1,24 +1,24 @@
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useDashboardStore } from '@/store/index';
-import { useTranslation } from '@/i18n';
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useDashboardStore } from "@/store/index";
+import { useTranslation } from "@/i18n";
 
 function cn(...classes: (string | undefined | false | null)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }
 
 export interface WidgetErrorProps {
   widgetId: string;
+  onRetry?: () => void;
 }
 
-export function WidgetError({ widgetId }: WidgetErrorProps) {
+export function WidgetError({ widgetId, onRetry }: WidgetErrorProps) {
+  const editMode = useDashboardStore((s) => s.editMode);
   const removeWidget = useDashboardStore((s) => s.removeWidget);
-  const widget = useDashboardStore((s) => s.widgets.find((w) => w.id === widgetId));
+  const widget = useDashboardStore((s) =>
+    s.widgets.find((w) => w.id === widgetId),
+  );
   const { t } = useTranslation();
-
-  const handleRetry = () => {
-    window.location.reload();
-  };
 
   const handleRemove = () => {
     removeWidget(widgetId);
@@ -27,25 +27,34 @@ export function WidgetError({ widgetId }: WidgetErrorProps) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 p-6 rounded-[var(--radius-default)]',
-        'border border-[var(--status-warning)]/30 bg-[var(--status-warning)]/5',
+        "flex flex-col items-center justify-center gap-3 p-6 rounded-[var(--radius-default)]",
+        "border border-[var(--status-warning)]/30 bg-[var(--status-warning)]/5",
       )}
     >
       <AlertTriangle className="h-8 w-8 text-[var(--status-warning)]" />
       <div className="text-center">
-        <p className="text-sm font-medium text-[var(--text-primary)]">{t('error.title')}</p>
+        <p className="text-sm font-medium text-[var(--text-primary)]">
+          {t("error.title")}
+        </p>
         <p className="text-xs text-[var(--text-muted)] mt-1">
           {widget?.title ?? widgetId}
         </p>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={handleRetry}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          disabled={!onRetry}
+        >
           <RefreshCw className="h-3.5 w-3.5" />
-          {t('error.retry')}
+          {t("error.retry")}
         </Button>
-        <Button variant="ghost" size="sm" onClick={handleRemove}>
-          {t('error.remove')}
-        </Button>
+        {editMode && (
+          <Button variant="ghost" size="sm" onClick={handleRemove}>
+            {t("error.remove")}
+          </Button>
+        )}
       </div>
     </div>
   );

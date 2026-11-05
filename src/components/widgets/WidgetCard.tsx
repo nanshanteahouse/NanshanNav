@@ -1,41 +1,47 @@
-import { Suspense, Component, lazy } from 'react';
-import type { ReactNode } from 'react';
-import type { WidgetConfig, WidgetType } from '@/types/widget';
-import { WidgetShell } from '@/components/widgets/WidgetShell';
-import { WidgetError } from '@/components/widgets/WidgetError';
-import { WidgetSkeleton } from '@/components/widgets/WidgetSkeleton';
-import { loadWidgetComponent } from '@/registry/loaders';
-import { useDashboardStore } from '@/store/index';
+import { Suspense, Component, lazy, useState } from "react";
+import type { ReactNode } from "react";
+import type { WidgetConfig, WidgetType } from "@/types/widget";
+import { WidgetShell } from "@/components/widgets/WidgetShell";
+import { WidgetError } from "@/components/widgets/WidgetError";
+import { WidgetSkeleton } from "@/components/widgets/WidgetSkeleton";
+import { loadWidgetComponent } from "@/registry/loaders";
+import { useDashboardStore } from "@/store/index";
+import { useElementSize } from "@/hooks/useElementSize";
 
-const WIDGET_TYPE_VALUES: WidgetType[] = ['title-header', 'markdown-text', 'web-link', 'web-page', 'pve-status', 'search-box', 'clock', 'image'];
-
-const widgetComponentCache: Record<string, React.LazyExoticComponent<React.ComponentType<Record<string, unknown>>>> = Object.fromEntries(
-  WIDGET_TYPE_VALUES.map((type) => [
-    type,
-    lazy(() =>
-      loadWidgetComponent(type).then((mod) => ({
-        default: mod.default as unknown as React.ComponentType<Record<string, unknown>>,
-      })),
-    ),
-  ]),
+function createWidgetComponent(type: WidgetType) {
+  return lazy(() =>
+    loadWidgetComponent(type).then((mod) => ({
+      default: mod.default as unknown as React.ComponentType<
+        Record<string, unknown>
+      >,
+    })),
+  );
+}
+const widgetComponentCache = Object.fromEntries(
+  (
+    [
+      "title-header",
+      "markdown-text",
+      "web-link",
+      "web-page",
+      "pve-status",
+      "search-box",
+      "clock",
+      "image",
+    ] as WidgetType[]
+  ).map((type) => [type, createWidgetComponent(type)]),
 );
 
 class ErrorBoundaryClass extends Component<
   { fallback: ReactNode; children: ReactNode },
   { hasError: boolean }
 > {
-  constructor(props: { fallback: ReactNode; children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
+  state = { hasError: false };
   static getDerivedStateFromError() {
     return { hasError: true };
   }
-
   render() {
-    if (this.state.hasError) return this.props.fallback;
-    return this.props.children;
+    return this.state.hasError ? this.props.fallback : this.props.children;
   }
 }
 
@@ -45,25 +51,45 @@ export interface WidgetCardProps {
 
 export function WidgetCard({ widget }: WidgetCardProps) {
   const isEditMode = useDashboardStore((s) => s.editMode);
-  const WidgetComponent = widgetComponentCache[widget.type];
-
+  const [retry, setRetry] = useState(() => ({
+    attempt: 0,
+    type: widget.type,
+    Component: widgetComponentCache[widget.type],
+  }));
+  const [contentRef, size] = useElementSize<HTMLDivElement>();
+  const WidgetComponent =
+    retry.type === widget.type
+      ? retry.Component
+      : widgetComponentCache[widget.type];
   return (
     <WidgetShell widget={widget}>
-      <ErrorBoundaryClass fallback={<WidgetError widgetId={widget.id} />}>
-        <Suspense fallback={<WidgetSkeleton />}>
-          {WidgetComponent ? (
+      <div ref={contentRef} className="h-full w-full min-h-0">
+        <ErrorBoundaryClass
+          key={`${widget.type}:${retry.attempt}`}
+          fallback={
+            <WidgetError
+              widgetId={widget.id}
+              onRetry={() =>
+                setRetry((value) => ({
+                  attempt: value.attempt + 1,
+                  type: widget.type,
+                  Component: createWidgetComponent(widget.type),
+                }))
+              }
+            />
+          }
+        >
+          <Suspense fallback={<WidgetSkeleton />}>
             <WidgetComponent
               widgetId={widget.id}
               options={widget.options}
               isEditMode={isEditMode}
-              width={0}
-              height={0}
+              width={size.width}
+              height={size.height}
             />
-          ) : (
-            <WidgetError widgetId={widget.id} />
-          )}
-        </Suspense>
-      </ErrorBoundaryClass>
+          </Suspense>
+        </ErrorBoundaryClass>
+      </div>
     </WidgetShell>
   );
 }
