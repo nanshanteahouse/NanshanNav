@@ -1,67 +1,31 @@
-import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import path from 'node:path';
+import { createHash, randomUUID } from "node:crypto";
+import { mkdir, readFile, stat, writeFile, rename } from "node:fs/promises";
+import path from "node:path";
 
-const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || './uploads');
-
-const CACHE_DIR = path.resolve(UPLOAD_DIR, 'favicons');
-const CACHE_TTL = 7 * 24 * 3600 * 1000; // 7 days
-
-export interface FaviconCacheEntry {
-  data: Buffer;
-  contentType: string;
+const CACHE_DIR = path.resolve(
+  process.env.UPLOAD_DIR || "./uploads",
+  "favicons-v2",
+);
+const CACHE_TTL = 7 * 24 * 3600 * 1000;
+function cachePath(origin: string) {
+  return path.join(
+    CACHE_DIR,
+    `${createHash("sha256").update(origin).digest("hex")}.webp`,
+  );
 }
-
-function ensureCacheDir() {
-  if (!existsSync(CACHE_DIR)) {
-    mkdirSync(CACHE_DIR, { recursive: true });
+export async function getCachedFavicon(origin: string): Promise<Buffer | null> {
+  try {
+    const file = cachePath(origin);
+    if (Date.now() - (await stat(file)).mtimeMs > CACHE_TTL) return null;
+    return await readFile(file);
+  } catch {
+    return null;
   }
 }
-
-function getHostHash(host: string): string {
-  return createHash('md5').update(host).digest('hex');
-}
-
-function getCachePath(host: string): string {
-  return path.join(CACHE_DIR, `${getHostHash(host)}.ico`);
-}
-
-function getMetaPath(host: string): string {
-  return path.join(CACHE_DIR, `${getHostHash(host)}.meta.json`);
-}
-
-export function getCachedFavicon(host: string): FaviconCacheEntry | null {
-  ensureCacheDir();
-  const cachePath = getCachePath(host);
-  if (!existsSync(cachePath)) return null;
-  const age = Date.now() - statSync(cachePath).mtimeMs;
-  if (age > CACHE_TTL) return null;
-
-  const data = readFileSync(cachePath);
-
-  // Read metadata file for contentType, fall back to image/x-icon for backward compat
-  let contentType = 'image/x-icon';
-  const metaPath = getMetaPath(host);
-  if (existsSync(metaPath)) {
-    try {
-      const meta = JSON.parse(readFileSync(metaPath, 'utf-8'));
-      if (meta.contentType) contentType = meta.contentType;
-    } catch {
-      // malformed meta file, use default
-    }
-  }
-
-  return { data, contentType };
-}
-
-export function cacheFavicon(host: string, data: Buffer, contentType: string): void {
-  ensureCacheDir();
-  const cachePath = getCachePath(host);
-  writeFileSync(cachePath, data);
-
-  const metaPath = getMetaPath(host);
-  writeFileSync(metaPath, JSON.stringify({
-    contentType,
-    cachedAt: Date.now(),
-  }));
+export async function cacheFavicon(origin: string, data: Buffer) {
+  await mkdir(CACHE_DIR, { recursive: true });
+  const file = cachePath(origin);
+  const temporary = `${file}.${randomUUID()}.tmp`;
+  await writeFile(temporary, data);
+  await rename(temporary, file);
 }

@@ -1,17 +1,17 @@
-import type { StateCreator } from 'zustand';
-import type { WidgetConfig } from '@/types/widget.ts';
-import type { LayoutItem } from '@/types/layout.ts';
-import { generateId } from '@/lib/utils/generate-id.ts';
-import { COLS, DEFAULT_WIDGET_SIZE } from '@/lib/constants.ts';
-import type { LayoutSlice } from './layoutSlice.ts';
-import type { ClipboardSlice } from './clipboardSlice.ts';
-import type { HistorySlice } from './historySlice.ts';
-import type { Snapshot } from '@/types/history.ts';
+import type { StateCreator } from "zustand";
+import type { WidgetConfig } from "@/types/widget.ts";
+import type { LayoutItem } from "@/types/layout.ts";
+import { generateId } from "@/lib/utils/generate-id.ts";
+import { COLS, DEFAULT_WIDGET_SIZE } from "@/lib/constants.ts";
+import type { LayoutSlice } from "./layoutSlice.ts";
+import type { ClipboardSlice } from "./clipboardSlice.ts";
+import type { HistorySlice } from "./historySlice.ts";
+import type { Snapshot } from "@/types/history.ts";
 
 export interface WidgetSlice {
   widgets: WidgetConfig[];
   addWidget: (
-    config: Omit<WidgetConfig, 'id' | 'createdAt' | 'updatedAt'>,
+    config: Omit<WidgetConfig, "id" | "createdAt" | "updatedAt">,
   ) => string;
   updateWidget: (id: string, patch: Partial<WidgetConfig>) => void;
   removeWidget: (id: string) => void;
@@ -27,7 +27,10 @@ function snapshotState(full: WidgetSlice & LayoutSlice): Snapshot {
   };
 }
 
-export const createWidgetSlice: StateCreator<WidgetSlice, [], []> = (set, get) => ({
+export const createWidgetSlice: StateCreator<WidgetSlice, [], []> = (
+  set,
+  get,
+) => ({
   widgets: [],
   addWidget: (config) => {
     const id = generateId();
@@ -66,15 +69,24 @@ export const createWidgetSlice: StateCreator<WidgetSlice, [], []> = (set, get) =
     const full = get() as WidgetSlice & LayoutSlice & HistorySlice;
     full.pushSnapshot(snapshotState(full));
 
-    set((state) => ({
-      widgets: state.widgets.filter((w) => w.id !== id),
-    }));
+    set((state) => {
+      const current = state as WidgetSlice & LayoutSlice;
+      return {
+        widgets: current.widgets.filter((w) => w.id !== id),
+        layouts: Object.fromEntries(
+          Object.entries(current.layouts).map(([bp, entries]) => [
+            bp,
+            entries.filter((item: LayoutItem) => item.i !== id),
+          ]),
+        ) as unknown as LayoutSlice["layouts"],
+      };
+    });
   },
   setWidgets: (widgets) => set({ widgets }),
   duplicateWidget: (id, currentBreakpoint) => {
     const full = get() as WidgetSlice & LayoutSlice & HistorySlice;
     const source = full.widgets.find((w) => w.id === id);
-    if (!source) return '';
+    if (!source) return "";
 
     full.pushSnapshot(snapshotState(full));
 
@@ -86,9 +98,9 @@ export const createWidgetSlice: StateCreator<WidgetSlice, [], []> = (set, get) =
     clone.updatedAt = now;
 
     const cols = (COLS as Record<string, number>)[currentBreakpoint] ?? 12;
-    const sourceLayout = (full.layouts as unknown as Record<string, LayoutItem[]>)[
-      currentBreakpoint
-    ]?.find((l) => l.i === id);
+    const sourceLayout = (
+      full.layouts as unknown as Record<string, LayoutItem[]>
+    )[currentBreakpoint]?.find((l) => l.i === id);
 
     const newLayoutItem: LayoutItem = sourceLayout
       ? {
@@ -101,7 +113,10 @@ export const createWidgetSlice: StateCreator<WidgetSlice, [], []> = (set, get) =
 
     set((state) => {
       const fullState = state as WidgetSlice & LayoutSlice;
-      const bpEntries = (fullState.layouts as unknown as Record<string, LayoutItem[]>)[currentBreakpoint] ?? [];
+      const bpEntries =
+        (fullState.layouts as unknown as Record<string, LayoutItem[]>)[
+          currentBreakpoint
+        ] ?? [];
       return {
         widgets: [...fullState.widgets, clone],
         layouts: {
@@ -114,7 +129,10 @@ export const createWidgetSlice: StateCreator<WidgetSlice, [], []> = (set, get) =
     return newId;
   },
   pasteWidget: (currentBreakpoint) => {
-    const full = get() as WidgetSlice & ClipboardSlice & LayoutSlice & HistorySlice;
+    const full = get() as WidgetSlice &
+      ClipboardSlice &
+      LayoutSlice &
+      HistorySlice;
     const { clipboard } = full;
     if (!clipboard) return null;
 
@@ -127,7 +145,10 @@ export const createWidgetSlice: StateCreator<WidgetSlice, [], []> = (set, get) =
     clone.createdAt = now;
     clone.updatedAt = now;
 
-    const bpLayout = (full.layouts as unknown as Record<string, LayoutItem[]>)[currentBreakpoint] ?? [];
+    const bpLayout =
+      (full.layouts as unknown as Record<string, LayoutItem[]>)[
+        currentBreakpoint
+      ] ?? [];
     const maxY = bpLayout.reduce((max, l) => Math.max(max, l.y), -1);
     const y = maxY < 0 ? 0 : maxY + 1;
     const defaultSize = DEFAULT_WIDGET_SIZE[clone.type] ?? { w: 4, h: 4 };
@@ -142,7 +163,10 @@ export const createWidgetSlice: StateCreator<WidgetSlice, [], []> = (set, get) =
 
     set((state) => {
       const fullState = state as WidgetSlice & LayoutSlice;
-      const bpEntries = (fullState.layouts as unknown as Record<string, LayoutItem[]>)[currentBreakpoint] ?? [];
+      const bpEntries =
+        (fullState.layouts as unknown as Record<string, LayoutItem[]>)[
+          currentBreakpoint
+        ] ?? [];
       return {
         widgets: [...fullState.widgets, clone],
         layouts: {

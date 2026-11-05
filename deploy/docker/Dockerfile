@@ -14,6 +14,7 @@ COPY tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts index.htm
 
 # Copy source code and build
 COPY src/ src/
+COPY public/ public/
 RUN npm run build
 
 # =============================================================================
@@ -25,13 +26,17 @@ WORKDIR /app
 
 # Install only production dependencies
 COPY package.json package-lock.json ./
-RUN npm ci --production
+RUN npm ci --omit=dev
 
 # Copy built frontend from builder stage
 COPY --from=builder /app/dist ./dist
 
 # Copy backend source
-COPY server/ server/
+COPY server/index.ts server/app.ts server/
+COPY server/lib/ server/lib/
+COPY server/routes/ server/routes/
+COPY src/lib/dashboard-schema.ts src/lib/dashboard-schema.ts
+COPY src/types/ src/types/
 
 # Create required runtime directories
 RUN mkdir -p /app/server/config /app/uploads
@@ -41,7 +46,7 @@ EXPOSE 3001
 
 # Environment variables
 ENV NODE_ENV=production
-ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ENV HOST=0.0.0.0
 
 # Start the Hono.js backend with tsx
-CMD ["npx", "tsx", "server/index.ts"]
+CMD ["node_modules/.bin/tsx", "server/index.ts"]

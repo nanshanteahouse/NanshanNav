@@ -1,34 +1,41 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { useDashboardStore } from '@/store/index';
-import type { Snapshot } from '@/types/history';
-import type { WidgetConfig } from '@/types/widget';
-import type { DashboardLayouts } from '@/types/layout';
+import { describe, it, expect, beforeEach } from "vitest";
+import { useDashboardStore } from "@/store/index";
+import type { Snapshot } from "@/types/history";
+import type { WidgetConfig } from "@/types/widget";
+import type { DashboardLayouts } from "@/types/layout";
 
 /** Helper: create a minimal WidgetConfig with given id. */
 const widget = (id: string, title?: string): WidgetConfig => ({
   id,
-  type: 'clock',
+  type: "clock",
   title: title ?? `Widget ${id}`,
   options: {},
-  createdAt: '2025-01-01T00:00:00.000Z',
-  updatedAt: '2025-01-01T00:00:00.000Z',
+  createdAt: "2025-01-01T00:00:00.000Z",
+  updatedAt: "2025-01-01T00:00:00.000Z",
 });
 
 /** Helper: create a layout entry with given id at (x,y). */
 const layoutEntry = (i: string, x = 0, y = 0) => ({ i, x, y, w: 3, h: 2 });
 
 const emptyLayouts: DashboardLayouts = {
-  lg: [], md: [], sm: [], xs: [], xxs: [],
+  lg: [],
+  md: [],
+  sm: [],
+  xs: [],
+  xxs: [],
 };
 
-const snapshot = (widgets: WidgetConfig[], layouts?: DashboardLayouts): Snapshot => ({
+const snapshot = (
+  widgets: WidgetConfig[],
+  layouts?: DashboardLayouts,
+): Snapshot => ({
   widgets,
   layouts: layouts ?? emptyLayouts,
 });
 
 const emptySnapshot: Snapshot = { widgets: [], layouts: emptyLayouts };
 
-describe('historySlice', () => {
+describe("historySlice", () => {
   beforeEach(() => {
     // Reset history + widgets + layouts so tests have a clean slate
     useDashboardStore.setState({
@@ -38,14 +45,17 @@ describe('historySlice', () => {
     });
   });
 
-  it('should initialize with empty past and future', () => {
+  it("should initialize with empty past and future", () => {
     const { history } = useDashboardStore.getState();
     expect(history.past).toEqual([]);
     expect(history.future).toEqual([]);
   });
 
-  it('pushSnapshot should add snapshot to past', () => {
-    const snap = snapshot([widget('w1')], { ...emptyLayouts, lg: [layoutEntry('w1')] });
+  it("pushSnapshot should add snapshot to past", () => {
+    const snap = snapshot([widget("w1")], {
+      ...emptyLayouts,
+      lg: [layoutEntry("w1")],
+    });
     useDashboardStore.getState().pushSnapshot(snap);
 
     const { history } = useDashboardStore.getState();
@@ -54,7 +64,7 @@ describe('historySlice', () => {
     expect(history.future).toEqual([]);
   });
 
-  it('pushSnapshot should cap past at 50 entries (FIFO eviction)', () => {
+  it("pushSnapshot should cap past at 50 entries (FIFO eviction)", () => {
     for (let i = 1; i <= 51; i++) {
       useDashboardStore.getState().pushSnapshot(snapshot([widget(`w${i}`)]));
     }
@@ -63,15 +73,15 @@ describe('historySlice', () => {
     expect(history.past).toHaveLength(50);
 
     const ids = history.past.map((s) => s.widgets[0].id);
-    expect(ids).not.toContain('w1');
-    expect(ids).toContain('w51');
+    expect(ids).not.toContain("w1");
+    expect(ids).toContain("w51");
   });
 
-  it('undo should pop from past, push current to future, return restored Snapshot', () => {
+  it("undo should pop from past, push current to future, return restored Snapshot", () => {
     // Current store state = w1
     useDashboardStore.setState({
-      widgets: [widget('w1')],
-      layouts: { ...emptyLayouts, lg: [layoutEntry('w1')] },
+      widgets: [widget("w1")],
+      layouts: { ...emptyLayouts, lg: [layoutEntry("w1")] },
     });
 
     // Push a previous snapshot (the state BEFORE w1 was added)
@@ -86,10 +96,10 @@ describe('historySlice', () => {
     expect(history.future).toHaveLength(1);
 
     // future[0] should be the CURRENT store state (w1)
-    expect(history.future[0].widgets[0].id).toBe('w1');
+    expect(history.future[0].widgets[0].id).toBe("w1");
   });
 
-  it('redo should pop from future, push current to past, return forward Snapshot', () => {
+  it("redo should pop from future, push current to past, return forward Snapshot", () => {
     // Current store state = empty (after undo)
     useDashboardStore.setState({
       widgets: [],
@@ -97,7 +107,10 @@ describe('historySlice', () => {
     });
 
     // Manually set up: past has emptySnapshot, future has w1 state
-    const w1Snap = snapshot([widget('w1')], { ...emptyLayouts, lg: [layoutEntry('w1')] });
+    const w1Snap = snapshot([widget("w1")], {
+      ...emptyLayouts,
+      lg: [layoutEntry("w1")],
+    });
     useDashboardStore.setState({
       history: {
         past: [emptySnapshot],
@@ -117,21 +130,30 @@ describe('historySlice', () => {
     expect(history.past[1]).toEqual(emptySnapshot);
   });
 
-  it('undo on empty past should return null', () => {
+  it("undo on empty past should return null", () => {
     const result = useDashboardStore.getState().undo();
     expect(result).toBeNull();
   });
 
-  it('redo on empty future should return null', () => {
+  it("redo on empty future should return null", () => {
     const result = useDashboardStore.getState().redo();
     expect(result).toBeNull();
   });
 
-  it('pushSnapshot after undo should clear future (standard undo semantics)', () => {
+  it("pushSnapshot after undo should clear future (standard undo semantics)", () => {
     // Push two snapshots
-    const snap1 = snapshot([widget('w1')], { ...emptyLayouts, lg: [layoutEntry('w1')] });
-    const snap2 = snapshot([widget('w2')], { ...emptyLayouts, lg: [layoutEntry('w2')] });
-    const snap3 = snapshot([widget('w3')], { ...emptyLayouts, lg: [layoutEntry('w3')] });
+    const snap1 = snapshot([widget("w1")], {
+      ...emptyLayouts,
+      lg: [layoutEntry("w1")],
+    });
+    const snap2 = snapshot([widget("w2")], {
+      ...emptyLayouts,
+      lg: [layoutEntry("w2")],
+    });
+    const snap3 = snapshot([widget("w3")], {
+      ...emptyLayouts,
+      lg: [layoutEntry("w3")],
+    });
 
     useDashboardStore.getState().pushSnapshot(snap1); // past: [s1]
     useDashboardStore.getState().pushSnapshot(snap2); // past: [s1, s2]
@@ -151,9 +173,12 @@ describe('historySlice', () => {
     expect(history.future).toEqual([]);
   });
 
-  it('full undo→redo round-trip should restore original state', () => {
+  it("full undo→redo round-trip should restore original state", () => {
     // State A = empty, State B = w1
-    const stateB = snapshot([widget('w1')], { ...emptyLayouts, lg: [layoutEntry('w1')] });
+    const stateB = snapshot([widget("w1")], {
+      ...emptyLayouts,
+      lg: [layoutEntry("w1")],
+    });
 
     // Current store = state B
     useDashboardStore.setState({
@@ -172,14 +197,15 @@ describe('historySlice', () => {
     expect(useDashboardStore.getState().history.past).toEqual([]);
     expect(useDashboardStore.getState().history.future).toHaveLength(1);
 
-    // Redo: returns B, saves current (still B since slice didn't change it) to past
+    // Redo restores B atomically and archives A for another undo.
     const redoResult = useDashboardStore.getState().redo();
     expect(redoResult).toEqual(stateB);
 
-    // Final state: past=[B] (B saved as "current" during redo), future=[]
+    // Final state: past=[A], current=B, future=[]
     const { history } = useDashboardStore.getState();
     expect(history.past).toHaveLength(1);
-    expect(history.past[0]).toEqual(stateB);
+    expect(history.past[0]).toEqual(emptySnapshot);
+    expect(useDashboardStore.getState().widgets).toEqual(stateB.widgets);
     expect(history.future).toEqual([]);
   });
 });

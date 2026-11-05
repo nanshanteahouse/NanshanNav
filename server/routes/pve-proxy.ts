@@ -1,223 +1,186 @@
-import { Hono } from 'hono';
-import { readFile, writeFile, rename } from 'node:fs/promises';
-import path from 'node:path';
-import { existsSync } from 'node:fs';
-import { encryptToken, decryptToken, loadEncryptionKey, isEncryptedPayload } from '../lib/crypto.js';
-import type { EncryptedPayload } from '../lib/crypto.js';
+import { Hono } from "hono";
+import { readFile, writeFile, rename, mkdir } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import {
+  encryptToken,
+  decryptToken,
+  loadEncryptionKey,
+  isEncryptedPayload,
+} from "../lib/crypto.js";
+import { registeredTargets } from "../lib/targets.js";
+import { outbound } from "../lib/outbound.js";
 
-interface TokensConfig {
-  default?: string;
-  hosts?: Record<string, string>;
-}
+const TOKENS_PATH = path.resolve(
+  process.cwd(),
+  "server/config/pve-tokens.json",
+);
+type TokenMap = Record<string, string>;
 
-interface RawTokensConfig {
-  default?: string | EncryptedPayload;
-  hosts?: Record<string, string | EncryptedPayload>;
-}
-
-const TOKENS_PATH = path.resolve(process.cwd(), 'server/config/pve-tokens.json');
-
-function tryDecryptValue(value: unknown): string | null {
-  if (typeof value === 'string') return null; // old plaintext, skip
-  if (isEncryptedPayload(value)) {
-    try {
-      return decryptToken(value, loadEncryptionKey());
-    } catch {
-      return null; // tampered or wrong key
-    }
-  }
-  return null;
-}
-
-async function loadTokens(): Promise<TokensConfig | null> {
-  if (!existsSync(TOKENS_PATH)) return null;
+async function loadTokens(): Promise<TokenMap> {
   try {
-    const raw = await readFile(TOKENS_PATH, 'utf-8');
-    const parsed = JSON.parse(raw) as RawTokensConfig;
-    const result: TokensConfig = {};
-
-    if (parsed.default) {
-      const decrypted = tryDecryptValue(parsed.default);
-      if (decrypted !== null) result.default = decrypted;
+    const config = JSON.parse(await readFile(TOKENS_PATH, "utf8"));
+    const tokens: TokenMap = {};
+    // Legacy host-specific entries migrate only when the exact origin is registered.
+    for (const target of registeredTargets("NAV_PVE_HOSTS_JSON", true)) {
+      const value =
+        config.hosts?.[target.id] ??
+        config.hosts?.[target.url] ??
+        config.hosts?.[new URL(target.url).host];
+      if (isEncryptedPayload(value))
+        tokens[target.id] = decryptToken(value, loadEncryptionKey());
     }
-
-    if (parsed.hosts) {
-      result.hosts = {};
-      for (const [host, val] of Object.entries(parsed.hosts)) {
-        const decrypted = tryDecryptValue(val);
-        if (decrypted !== null) result.hosts[host] = decrypted;
-      }
-    }
-
-    return result;
-  } catch {
-    return null;
+    return tokens;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return {};
+    throw error;
   }
 }
 
-async function saveTokens(tokens: TokensConfig): Promise<void> {
-  const key = loadEncryptionKey();
-  const raw: RawTokensConfig = {};
-
-  if (tokens.default) {
-    raw.default = encryptToken(tokens.default, key);
-  }
-
-  if (tokens.hosts && Object.keys(tokens.hosts).length > 0) {
-    raw.hosts = {};
-    for (const [host, token] of Object.entries(tokens.hosts)) {
-      raw.hosts[host] = encryptToken(token, key);
-    }
-  }
-
-  const tmp = TOKENS_PATH + '.tmp';
-  await writeFile(tmp, JSON.stringify(raw, null, 2), 'utf-8');
-  await rename(tmp, TOKENS_PATH);
+async function saveTokens(tokens: TokenMap) {
+  const hosts = Object.fromEntries(
+    Object.entries(tokens).map(([id, token]) => [
+      id,
+      encryptToken(token, loadEncryptionKey()),
+    ]),
+  );
+  await mkdir(path.dirname(TOKENS_PATH), { recursive: true });
+  const temporary = `${TOKENS_PATH}.${randomUUID()}.tmp`;
+  await writeFile(temporary, JSON.stringify({ hosts }, null, 2), {
+    mode: 0o600,
+  });
+  await rename(temporary, TOKENS_PATH);
 }
 
-function getToken(tokens: TokensConfig | null, host: string): string | undefined {
-  // Priority: host-specific > default > env fallback
-  if (tokens?.hosts?.[host]) return tokens.hosts[host];
-  if (tokens?.default) return tokens.default;
-  return process.env.PVE_API_TOKEN;
+let writes: Promise<unknown> = Promise.resolve();
+function updateTokens(update: (tokens: TokenMap) => void) {
+  const operation = writes.then(async () => {
+    const tokens = await loadTokens();
+    update(tokens);
+    await saveTokens(tokens);
+  });
+  writes = operation.catch(() => undefined);
+  return operation;
 }
 
-function normalizeHost(host: string): string {
-  return host.replace(/\/+$/, '');
+function findTarget(id?: string, legacy?: string) {
+  const targets = registeredTargets("NAV_PVE_HOSTS_JSON", true);
+  if (id) return targets.find((target) => target.id === id);
+  if (legacy)
+    return targets.find(
+      (target) =>
+        target.id === legacy ||
+        target.url === legacy ||
+        new URL(target.url).host === legacy,
+    );
+  return undefined;
 }
 
 const pveProxy = new Hono();
+export const pveAdminRoutes = new Hono();
+pveAdminRoutes.get("/hosts", (c) =>
+  c.json(
+    registeredTargets("NAV_PVE_HOSTS_JSON", true).map((target) => ({
+      id: target.id,
+      label: target.id,
+      origin: target.url,
+    })),
+  ),
+);
 
-// ── Token management API ──
-
-/**
- * Mask a token for safe display.
- * "monitor@pve!dashboard=abc123xyz" → "monit****xyz"
- */
-function maskToken(token: string): string {
-  if (token.length <= 8) return '****';
-  const head = token.slice(0, 5);
-  const tail = token.slice(-4);
-  return `${head}****${tail}`;
-}
-
-// GET /api/pve/tokens — query token status (masked)
-pveProxy.get('/tokens', async (c) => {
-  const host = normalizeHost(c.req.query('host') || c.req.header('X-PVE-Host') || '');
-  const tokens = await loadTokens();
-
-  const token = tokens?.hosts?.[host] || tokens?.default || '';
-  if (token) {
-    return c.json({
-      hasToken: true,
-      masked: maskToken(token),
-      source: tokens?.hosts?.[host] ? 'host' : 'default',
-    });
-  }
-  return c.json({ hasToken: false });
+pveAdminRoutes.get("/tokens", async (c) => {
+  const target = findTarget(c.req.query("hostId"), c.req.query("host"));
+  if (!target) return c.json({ error: "Unknown registered PVE host ID" }, 400);
+  const token = (await loadTokens())[target.id];
+  return c.json(
+    token
+      ? { hasToken: true, masked: "********", source: "host" }
+      : { hasToken: false },
+  );
 });
 
-// PUT /api/pve/tokens — save a token
-pveProxy.put('/tokens', async (c) => {
+pveAdminRoutes.put("/tokens", async (c) => {
   const body = await c.req.json();
-  const host = normalizeHost(body.host || 'default');
-  const token = body.token;
-
-  if (!token) {
-    return c.json({ error: 'Token is required' }, 400);
+  const target = findTarget(body.hostId, body.host);
+  if (
+    !target ||
+    typeof body.token !== "string" ||
+    body.token.length > 4096 ||
+    !/^[^\s=]+@[^\s=]+![^\s=]+=[^\s]+$/.test(body.token)
+  ) {
+    return c.json(
+      { error: "Registered hostId and valid PVE API token required" },
+      400,
+    );
   }
-
-  const tokens = (await loadTokens()) || {};
-  if (host === 'default') {
-    tokens.default = token;
-  } else {
-    if (!tokens.hosts) tokens.hosts = {};
-    tokens.hosts[host] = token;
-  }
-
-  await saveTokens(tokens);
-
-  return c.json({ masked: maskToken(token) });
+  await updateTokens((tokens) => {
+    tokens[target.id] = body.token;
+  });
+  return c.json({ masked: "********" });
 });
 
-// DELETE /api/pve/tokens — remove a host-specific token
-pveProxy.delete('/tokens', async (c) => {
-  const host = normalizeHost(c.req.query('host') || '');
-  if (!host || host === 'default') {
-    return c.json({ error: 'Must specify a host name to delete' }, 400);
-  }
-
-  const tokens = await loadTokens();
-  if (tokens?.hosts?.[host]) {
-    delete tokens.hosts[host];
-    await saveTokens(tokens);
-  }
-
+pveAdminRoutes.delete("/tokens", async (c) => {
+  const target = findTarget(c.req.query("hostId"), c.req.query("host"));
+  if (!target) return c.json({ error: "Unknown registered PVE host ID" }, 400);
+  await updateTokens((tokens) => {
+    delete tokens[target.id];
+  });
   return c.json({ success: true });
 });
 
-pveProxy.all('*', async (c) => {
-  const hostHeader = c.req.header('X-PVE-Host');
-  let target = hostHeader || 'pve.lan:8006';
-  if (!target.startsWith('http')) target = `https://${target}`;
-  target = normalizeHost(target);
-
-  const tokens = await loadTokens();
-  const token = getToken(tokens, hostHeader ? normalizeHost(hostHeader) : '');
-
-  if (!token) {
-    return c.json({ error: 'No PVE API token configured' }, 502);
+pveProxy.all("*", async (c) => {
+  if (c.req.method !== "GET")
+    return c.json({ error: "PVE monitoring is read-only" }, 405);
+  const target = findTarget(
+    c.req.header("X-PVE-Host-ID"),
+    c.req.header("X-PVE-Host"),
+  );
+  if (!target) return c.json({ error: "Unknown registered PVE host ID" }, 400);
+  const suffix = c.req.path.replace(/^\/api\/pve/, "");
+  if (
+    !/^\/(nodes|cluster\/resources)$/.test(suffix) &&
+    !/^\/nodes\/[a-zA-Z0-9_-]+\/status$/.test(suffix)
+  ) {
+    return c.json({ error: "PVE route is not permitted" }, 403);
   }
-
-  const pvePath = '/api2/json' + c.req.path.replace(/^\/api\/pve/, '');
-  const query = c.req.query();
-  const queryStr = Object.keys(query).length > 0
-    ? '?' + new URLSearchParams(query as Record<string, string>).toString()
-    : '';
-  const pveUrl = `${target}${pvePath}${queryStr}`;
-
-  console.log(`[PVE proxy] ${c.req.method} ${pveUrl}`);
-
+  const token = (await loadTokens())[target.id];
+  if (!token)
+    return c.json(
+      { error: "No token configured for this registered PVE host" },
+      502,
+    );
+  const upstream = new URL(`/api2/json${suffix}`, target.url);
+  const type = c.req.query("type");
+  if (
+    type &&
+    ["vm", "storage", "node"].includes(type) &&
+    suffix === "/cluster/resources"
+  )
+    upstream.searchParams.set("type", type);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 30000);
-
-    const response = await fetch(pveUrl, {
-      method: c.req.method,
-      signal: controller.signal,
+    const response = await outbound(upstream, {
+      privateAllowed: true,
+      addresses: target.addresses,
+      timeoutMs: 10000,
       headers: {
-        'Authorization': `PVEAPIToken=${token}`,
-        'Accept': 'application/json',
+        Authorization: `PVEAPIToken=${token}`,
+        Accept: "application/json",
       },
     });
-
-    clearTimeout(timer);
-
-    let body: unknown;
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('json')) {
-      body = await response.json();
-    } else {
-      const text = await response.text();
-      body = { raw: text.substring(0, 500) };
-    }
-
-    if (!response.ok) {
-      console.error(`[PVE proxy] ${response.status} ${response.statusText}:`, JSON.stringify(body).slice(0, 300));
-      if (response.status === 401) {
-        return c.json({ error: 'PVE API authentication failed — check your token' }, 502);
-      }
-    }
-    return c.json(body, response.status as any);
-  } catch (err: any) {
-    console.error(`[PVE proxy] fetch error:`, err?.message || err);
-    if (err.name === 'AbortError') {
-      return c.json({ error: 'Request to PVE timed out' }, 504);
-    }
-    return c.json({
-      error: 'Bad Gateway',
-      detail: err?.message || 'Cannot reach PVE host',
-    }, 502);
+    if (response.status >= 300)
+      return c.json(
+        { error: "PVE upstream rejected the request or attempted a redirect" },
+        502,
+      );
+    return c.json(JSON.parse(response.body.toString()));
+  } catch {
+    return c.json(
+      {
+        error:
+          "Cannot reach registered PVE host; check TLS trust and configuration",
+      },
+      502,
+    );
   }
 });
 

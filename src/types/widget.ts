@@ -1,17 +1,17 @@
-import type { ComponentType } from 'react';
+import type { ComponentType } from "react";
 
 // ── Widget Type Discriminator ──
 
 export const WIDGET_TYPES = [
-  'title-header',
-  'markdown-text',
-  'web-link',
-  'web-page',
-  'pve-status',
-  'search-box',
-  'clock',
-  'image',
-];
+  "title-header",
+  "markdown-text",
+  "web-link",
+  "web-page",
+  "pve-status",
+  "search-box",
+  "clock",
+  "image",
+] as const;
 
 export type WidgetType = (typeof WIDGET_TYPES)[number];
 
@@ -50,9 +50,13 @@ export interface WidgetDefinition<TKind extends WidgetType = WidgetType> {
   /** Default options merged when creating a new widget */
   defaultOptions: Record<string, unknown>;
   /** Dynamic import of the widget React component */
-  componentLoader: () => Promise<{ default: ComponentType<WidgetComponentProps> }>;
+  componentLoader: () => Promise<{
+    default: ComponentType<WidgetComponentProps>;
+  }>;
   /** Dynamic import of the widget settings panel (shown in edit mode) */
-  settingsLoader?: () => Promise<{ default: ComponentType<WidgetSettingsProps> }>;
+  settingsLoader?: () => Promise<{
+    default: ComponentType<WidgetSettingsProps>;
+  }>;
   /** Whether this widget requires server data via TanStack Query */
   requiresServerData: boolean;
 }
@@ -83,8 +87,8 @@ export interface WidgetSettingsProps {
 
 // Title Header
 export interface TitleHeaderOptions {
-  headingLevel: 'h1' | 'h2' | 'h3' | 'h4';
-  textAlign: 'left' | 'center' | 'right';
+  headingLevel: "h1" | "h2" | "h3" | "h4";
+  textAlign: "left" | "center" | "right";
   showDivider: boolean;
   /** Lucide icon name (PascalCase), empty string means no icon */
   iconName: string;
@@ -96,7 +100,7 @@ export interface MarkdownTextOptions {
 }
 
 // Web Link
-export type IconSource = 'favicon' | 'lucide' | 'custom' | 'initial';
+export type IconSource = "favicon" | "lucide" | "custom" | "initial";
 
 export interface LinkItem {
   id: string;
@@ -104,6 +108,7 @@ export interface LinkItem {
   url: string;
   icon: string;
   description: string;
+  tags?: string[];
   iconSource?: IconSource;
   iconValue?: string | null;
 }
@@ -120,7 +125,8 @@ export interface WebLinkOptions {
 
 // PVE Status
 export interface PveStatusOptions {
-  proxmoxHost: string; // e.g., 'pve.lan:8006'
+  proxmoxHost: string; // registered server-side host ID (legacy origins must match an approved host)
+  proxmoxUrl?: string; // public web interface URL, saved when selecting a host
   nodeName: string; // e.g., 'pve'
   showCpu: boolean;
   showMemory: boolean;
@@ -133,7 +139,7 @@ export interface PveStatusOptions {
 
 // Search Box
 export interface SearchBoxOptions {
-  defaultEngine: 'google' | 'baidu' | 'bing' | 'duckduckgo' | 'custom';
+  defaultEngine: "google" | "baidu" | "bing" | "duckduckgo" | "custom";
   customEngineUrl?: string; // e.g., 'https://search.example.com?q={query}'
   enableLocalSearch: boolean;
   placeholder: string;
@@ -146,7 +152,7 @@ export interface WebPageOptions {
 
 // Clock
 export interface ClockOptions {
-  displayMode: 'analog' | 'digital';
+  displayMode: "analog" | "digital";
   timezone: string; // IANA timezone, e.g., 'Asia/Shanghai'
   showSeconds: boolean;
   showDate: boolean;
@@ -155,11 +161,11 @@ export interface ClockOptions {
 }
 
 // ── Image ──
-export type ImageScaleMode = 'contain' | 'cover' | 'fill' | 'original';
-export type ImageAlignX = 'left' | 'center' | 'right';
-export type ImageAlignY = 'top' | 'center' | 'bottom';
-export type ImageSourceType = 'url' | 'upload';
-export type ImageClickAction = 'none' | 'preview' | 'link';
+export type ImageScaleMode = "contain" | "cover" | "fill" | "original";
+export type ImageAlignX = "left" | "center" | "right";
+export type ImageAlignY = "top" | "center" | "bottom";
+export type ImageSourceType = "url" | "upload";
+export type ImageClickAction = "none" | "preview" | "link";
 
 export interface ImageOptions {
   sourceType: ImageSourceType;

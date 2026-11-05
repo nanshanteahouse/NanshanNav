@@ -1,15 +1,21 @@
-import type { StateCreator } from 'zustand';
-import type { Snapshot, HistoryEntry } from '@/types/history.ts';
-import type { DashboardLayouts } from '@/types/layout.ts';
-import type { WidgetConfig } from '@/types/widget.ts';
+import type { StateCreator } from "zustand";
+import type { Snapshot, HistoryEntry } from "@/types/history.ts";
+import type { DashboardLayouts } from "@/types/layout.ts";
+import type { WidgetConfig } from "@/types/widget.ts";
+import type { DashboardSettings } from "@/types/dashboard.ts";
 
 const EMPTY_LAYOUTS: DashboardLayouts = {
-  lg: [], md: [], sm: [], xs: [], xxs: [],
+  lg: [],
+  md: [],
+  sm: [],
+  xs: [],
+  xxs: [],
 };
 
 /** Accessor interface used to reach widgets/layouts across slices. */
 interface HistoryStoreAccess {
   history: HistoryEntry;
+  settings?: DashboardSettings;
   widgets?: WidgetConfig[];
   layouts?: DashboardLayouts;
 }
@@ -22,7 +28,10 @@ export interface HistorySlice {
   clearHistory: () => void;
 }
 
-export const createHistorySlice: StateCreator<HistorySlice, [], []> = (set, get) => ({
+export const createHistorySlice: StateCreator<HistorySlice, [], []> = (
+  set,
+  get,
+) => ({
   history: { past: [], future: [] },
 
   pushSnapshot: (snapshot) => {
@@ -50,9 +59,13 @@ export const createHistorySlice: StateCreator<HistorySlice, [], []> = (set, get)
     const currentSnapshot: Snapshot = {
       widgets: full.widgets ?? [],
       layouts: full.layouts ?? EMPTY_LAYOUTS,
+      ...(restored.settings && full.settings
+        ? { settings: full.settings }
+        : {}),
     };
 
     set({
+      ...restored,
       history: {
         past,
         future: [...full.history.future, currentSnapshot],
@@ -72,9 +85,13 @@ export const createHistorySlice: StateCreator<HistorySlice, [], []> = (set, get)
     const currentSnapshot: Snapshot = {
       widgets: full.widgets ?? [],
       layouts: full.layouts ?? EMPTY_LAYOUTS,
+      ...(restored.settings && full.settings
+        ? { settings: full.settings }
+        : {}),
     };
 
     set({
+      ...restored,
       history: {
         past: [...full.history.past, currentSnapshot],
         future,

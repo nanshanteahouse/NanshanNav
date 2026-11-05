@@ -3,33 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ILwFoW1mEXQjfhE3h+rDMiGg1HJTumpOq8aN8RdFy7g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'none'; object-src 'none';" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'sha256-ILwFoW1mEXQjfhE3h+rDMiGg1HJTumpOq8aN8RdFy7g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: http:; connect-src 'self' https:; frame-src 'self' http: https:; object-src 'none';"
+    />
     <title>NanshanNav</title>
-    <script>
-      (function() {
-        var stored, parsed, settings, themeMode;
-        try {
-          stored = localStorage.getItem('dashboard-storage');
-          if (stored) {
-            parsed = JSON.parse(stored);
-            settings = parsed?.state?.settings;
-            if (settings) {
-              if (settings.themeMode) {
-                themeMode = settings.themeMode;
-              } else if ('darkMode' in settings) {
-                themeMode = settings.darkMode ? 'dark' : 'system';
-              }
-              if (themeMode === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-              } else if (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-              }
-            }
-          }
-        } catch {}
-      })();
-    </script>
+    <script src="/theme.js"></script>
   </head>
   <body>
     <div id="root"></div>

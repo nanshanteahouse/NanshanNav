@@ -1,9 +1,11 @@
-import type { WidgetConfig } from './widget.ts';
-import type { DashboardLayouts, LayoutItem } from './layout.ts';
+import type { DashboardSettings } from "./dashboard.ts";
+import type { WidgetConfig } from "./widget.ts";
+import type { DashboardLayouts, LayoutItem } from "./layout.ts";
 
 // ── Snapshot: captures the full widget + layout state at a point in time ──
 
 export interface Snapshot {
+  settings?: DashboardSettings;
   /** Widget configurations at the point of snapshot */
   widgets: WidgetConfig[];
   /** Grid layouts for all breakpoints at the point of snapshot */
