@@ -6,8 +6,8 @@
  * - Trims whitespace
  *
  * @example
- *   normalizeUrl('192.168.64.1')       → 'https://192.168.64.1'
- *   normalizeUrl('http://192.168.64.1') → 'http://192.168.64.1'
+ *   normalizeUrl('192.0.2.1')       → 'https://192.0.2.1'
+ *   normalizeUrl('http://192.0.2.1') → 'http://192.0.2.1'
  *   normalizeUrl('//cdn.example.com')   → '//cdn.example.com'
  *   normalizeUrl('  example.com  ')     → 'https://example.com'
  *   normalizeUrl('')                    → ''

@@ -9,9 +9,9 @@ describe('getFaviconUrl', () => {
   });
 
   it('should prepend https:// and encode a bare hostname', () => {
-    const result = getFaviconUrl('192.168.64.1');
+    const result = getFaviconUrl('192.0.2.1');
     expect(result).toBe(
-      '/api/favicon?url=https%3A%2F%2F192.168.64.1',
+      '/api/favicon?url=https%3A%2F%2F192.0.2.1',
     );
   });
 

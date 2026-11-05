@@ -37,3 +37,12 @@ server/config/.pve-key
 
 # Auto-fetched favicon cache
 uploads/favicons/
+
+# Environment secrets and runtime dashboard data
+.env
+.env.*
+!.env.example
+!**/.env.example
+server/config/dashboard-state*.json
+server/config/dashboard-versions/
+uploads/

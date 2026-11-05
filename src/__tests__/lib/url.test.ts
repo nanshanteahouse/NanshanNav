@@ -7,7 +7,7 @@ describe('normalizeUrl', () => {
   });
 
   it('should prepend https:// to a bare hostname', () => {
-    expect(normalizeUrl('192.168.64.1')).toBe('https://192.168.64.1');
+    expect(normalizeUrl('192.0.2.1')).toBe('https://192.0.2.1');
   });
 
   it('should trim whitespace and prepend https://', () => {
