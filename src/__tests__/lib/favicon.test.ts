@@ -33,4 +33,20 @@ describe('getFaviconUrl', () => {
       '/api/favicon?url=https%3A%2F%2Fexample.com%2Fpath%3Fq%3Da%20b',
     );
   });
+
+  it.each([
+    ['https://example.com/#/dashboard?tab=home', 'https://example.com/'],
+    ['http://example.com/app?view=all#settings', 'http://example.com/app?view=all'],
+    ['example.com/app#settings', 'https://example.com/app'],
+    ['https://example.com/path%23part?q=%23value#route', 'https://example.com/path%23part?q=%23value'],
+    ['https://example.com/path%23part?q=%23value', 'https://example.com/path%23part?q=%23value'],
+    ['https://example.com/app#', 'https://example.com/app'],
+  ])('should request the favicon for %s without its fragment', (url, expected) => {
+    const link = { url };
+
+    const request = new URL(getFaviconUrl(link.url), 'https://dashboard.example');
+
+    expect(request.searchParams.get('url')).toBe(expected);
+    expect(link.url).toBe(url);
+  });
 });
