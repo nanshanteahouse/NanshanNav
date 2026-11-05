@@ -1,6 +1,10 @@
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import type { WidgetComponentProps, MarkdownTextOptions } from '@/types/widget.ts';
+import { useTranslation } from "@/i18n";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import type {
+  WidgetComponentProps,
+  MarkdownTextOptions,
+} from "@/types/widget.ts";
 
 /**
  * Sanitizes URLs to prevent XSS via javascript:, vbscript:, and data: schemes.
@@ -9,16 +13,23 @@ import type { WidgetComponentProps, MarkdownTextOptions } from '@/types/widget.t
 function sanitizeUrl(url: string): string {
   const trimmed = url.trim().toLowerCase();
   if (
-    trimmed.startsWith('javascript:') ||
-    trimmed.startsWith('vbscript:') ||
-    trimmed.startsWith('data:')
+    trimmed.startsWith("javascript:") ||
+    trimmed.startsWith("vbscript:") ||
+    trimmed.startsWith("data:")
   ) {
-    return '';
+    return "";
   }
   return url;
 }
 
-export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEditMode, width: _width, height: _height }: WidgetComponentProps) {
+export default function MarkdownTextWidget({
+  widgetId: _widgetId,
+  options,
+  isEditMode,
+  width: _width,
+  height: _height,
+}: WidgetComponentProps) {
+  const { t } = useTranslation();
   const opts = options as unknown as MarkdownTextOptions;
   const hasContent = opts.content && opts.content.trim().length > 0;
 
@@ -26,10 +37,12 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
     return (
       <div
         className="flex h-full w-full items-center justify-center p-4 text-center"
-        style={{ color: 'var(--text-muted)' }}
+        style={{ color: "var(--text-muted)" }}
         data-widget-type="markdown-text"
       >
-        <p className="text-sm italic">Empty markdown. Click settings to edit.</p>
+        <p className="text-sm italic">
+          {t("widget.markdownText.emptyMessage")}
+        </p>
       </div>
     );
   }
@@ -39,15 +52,15 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
       className="h-full w-full overflow-auto p-4 scrollbar-thin"
       data-widget-type="markdown-text"
       style={{
-        wordBreak: 'break-word',
-        overflowWrap: 'break-word',
+        wordBreak: "break-word",
+        overflowWrap: "break-word",
       }}
     >
       <div
         className="prose prose-sm max-w-none"
         style={{
-          color: 'var(--text-primary)',
-          lineHeight: '1.7',
+          color: "var(--text-primary)",
+          lineHeight: "1.7",
         }}
       >
         <ReactMarkdown
@@ -57,8 +70,12 @@ export default function MarkdownTextWidget({ widgetId: _widgetId, options, isEdi
             a: ({ href, children, ...props }) => (
               <a
                 href={isEditMode ? undefined : href}
-                onClick={isEditMode ? (e: React.MouseEvent) => e.preventDefault() : undefined}
-                style={isEditMode ? { cursor: 'default' } : undefined}
+                onClick={
+                  isEditMode
+                    ? (e: React.MouseEvent) => e.preventDefault()
+                    : undefined
+                }
+                style={isEditMode ? { cursor: "default" } : undefined}
                 {...props}
               >
                 {children}

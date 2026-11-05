@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
-import type { ClockOptions } from '@/types/widget.ts';
+import { useMemo } from "react";
+import { useTranslation } from "@/i18n";
+import type { ClockOptions } from "@/types/widget.ts";
 
 interface DigitalClockProps {
   time: Date;
@@ -7,41 +8,42 @@ interface DigitalClockProps {
 }
 
 export default function DigitalClock({ time, options }: DigitalClockProps) {
+  const { locale } = useTranslation();
   const formatted = useMemo(() => {
-    const timeStr = new Intl.DateTimeFormat(options.timezone === 'Asia/Shanghai' ? 'zh-CN' : 'en-US', {
+    const timeStr = new Intl.DateTimeFormat(locale, {
       timeZone: options.timezone,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: options.showSeconds ? '2-digit' : undefined,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: options.showSeconds ? "2-digit" : undefined,
       hour12: !options.is24Hour,
     }).format(time);
 
-    let dateStr = '';
+    let dateStr = "";
     if (options.showDate) {
-      const weekDay = new Intl.DateTimeFormat('en-US', {
+      const weekDay = new Intl.DateTimeFormat(locale, {
         timeZone: options.timezone,
-        weekday: 'long',
+        weekday: "long",
       }).format(time);
-      const yyyymmdd = new Intl.DateTimeFormat('en-CA', {
+      const yyyymmdd = new Intl.DateTimeFormat("en-CA", {
         timeZone: options.timezone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       }).format(time);
 
       dateStr = `${yyyymmdd} ${weekDay}`;
     }
 
     return { timeStr, dateStr };
-  }, [time, options]);
+  }, [time, options, locale]);
 
   return (
     <div className="flex flex-col items-center justify-center gap-1">
       <span
         className="font-mono leading-none tracking-tight"
         style={{
-          fontSize: 'clamp(1.2rem, 8cqw, 3rem)',
-          color: 'var(--text-primary)',
+          fontSize: "clamp(1.2rem, 8cqw, 3rem)",
+          color: "var(--text-primary)",
           fontWeight: 700,
         }}
       >
@@ -51,8 +53,8 @@ export default function DigitalClock({ time, options }: DigitalClockProps) {
         <span
           className="leading-none"
           style={{
-            fontSize: 'clamp(0.6rem, 3cqw, 1.1rem)',
-            color: 'var(--text-secondary)',
+            fontSize: "clamp(0.6rem, 3cqw, 1.1rem)",
+            color: "var(--text-secondary)",
           }}
         >
           {formatted.dateStr}
