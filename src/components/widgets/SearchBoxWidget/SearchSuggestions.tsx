@@ -1,104 +1,70 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
-import { createPortal } from 'react-dom';
-import type { LinkItem } from '@/types/widget.ts';
-import { Globe } from 'lucide-react';
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { Globe } from "lucide-react";
+import type { LinkItem } from "@/types/widget";
 
-interface SearchSuggestionsProps {
+interface Props {
+  id: string;
   suggestions: LinkItem[];
-  query: string;
+  selectedIndex: number;
+  onHighlight: (index: number) => void;
   onSelect: (url: string) => void;
-  visible: boolean;
   anchorRect: DOMRect | null;
 }
-
-export default function SearchSuggestions({ suggestions, query, onSelect, visible, anchorRect }: SearchSuggestionsProps) {
-  const listRef = useRef<HTMLUListElement>(null);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-
-  const scrollToSelected = useCallback((idx: number) => {
-    if (!listRef.current) return;
-    const items = listRef.current.querySelectorAll('li');
-    if (idx >= 0 && items[idx]) {
-      (items[idx] as HTMLElement).scrollIntoView({ block: 'nearest' });
-    }
-  }, []);
-
-  const handleKeyboard = useCallback(
-    (e: KeyboardEvent) => {
-      if (!visible || suggestions.length === 0) return;
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex((prev) => {
-          const next = Math.min(prev + 1, suggestions.length - 1);
-          scrollToSelected(next);
-          return next;
-        });
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex((prev) => {
-          const next = Math.max(-1, prev - 1);
-          scrollToSelected(next);
-          return next;
-        });
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        setSelectedIndex((prev) => {
-          if (prev >= 0) {
-            const selected = suggestions[prev];
-            if (selected) onSelect(selected.url);
-          }
-          return prev;
-        });
-      }
-    },
-    [visible, suggestions, onSelect, scrollToSelected],
-  );
-
+export default function SearchSuggestions({
+  id,
+  suggestions,
+  selectedIndex,
+  onHighlight,
+  onSelect,
+  anchorRect,
+}: Props) {
+  const list = useRef<HTMLUListElement>(null);
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyboard);
-    return () => document.removeEventListener('keydown', handleKeyboard);
-  }, [handleKeyboard]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedIndex(-1);
-  }, [suggestions]);
-
-  if (!visible || !query.trim() || suggestions.length === 0 || !anchorRect) return null;
-
+    list.current?.children[selectedIndex]?.scrollIntoView?.({
+      block: "nearest",
+    });
+  }, [selectedIndex]);
+  if (!anchorRect || !suggestions.length) return null;
+  const viewport = window.visualViewport;
+  const viewportTop = viewport?.offsetTop ?? 0;
+  const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+  const below = Math.max(0, viewportBottom - anchorRect.bottom - 8);
+  const above = Math.max(0, anchorRect.top - viewportTop - 8);
+  const flip = below < 180 && above > below;
+  const maxHeight = Math.min(240, flip ? above : below);
   return createPortal(
     <ul
-      ref={listRef}
-      className="fixed z-[9998] max-h-48 overflow-auto rounded-lg border py-1 shadow-lg scrollbar-thin"
+      id={id}
+      ref={list}
+      role="listbox"
+      className="fixed z-[60] max-h-60 overflow-auto rounded-lg border py-1 shadow-lg bg-[var(--bg-widget)] border-[var(--border-default)]"
       style={{
-        top: anchorRect.bottom + 4,
+        top: flip ? anchorRect.top - maxHeight - 4 : anchorRect.bottom + 4,
         left: anchorRect.left,
         width: anchorRect.width,
-        backgroundColor: 'var(--bg-widget)',
-        borderColor: 'var(--border-default)',
+        maxHeight,
       }}
-      role="listbox"
     >
       {suggestions.map((link, index) => (
         <li
-          key={link.id || index}
+          key={`${link.id}-${index}`}
+          id={`${id}-${index}`}
           role="option"
           aria-selected={selectedIndex === index}
-          className="flex cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
+          className="flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 text-sm"
           style={{
-            backgroundColor:
-              selectedIndex === index ? 'var(--bg-widget-hover)' : 'transparent',
+            background:
+              selectedIndex === index ? "var(--bg-widget-hover)" : undefined,
           }}
-          onMouseEnter={() => setSelectedIndex(index)}
+          onMouseDown={(e) => e.preventDefault()}
+          onMouseEnter={() => onHighlight(index)}
           onClick={() => onSelect(link.url)}
         >
-          <Globe className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-          <div className="min-w-0 flex-1">
-            <div className="truncate" style={{ color: 'var(--text-primary)' }}>
-              {link.name}
-            </div>
-            <div className="truncate text-xs" style={{ color: 'var(--text-muted)' }}>
+          <Globe className="h-4 w-4 shrink-0" />
+          <div className="min-w-0">
+            <div className="truncate">{link.name}</div>
+            <div className="truncate text-xs text-[var(--text-muted)]">
               {link.url}
             </div>
           </div>

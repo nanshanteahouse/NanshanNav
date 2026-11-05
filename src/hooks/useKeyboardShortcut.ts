@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
-import { useDashboardStore } from '@/store';
+import { useEffect } from "react";
+import { useDashboardStore } from "@/store";
 
 /** True when the active element is a text input (should not intercept). */
 function isTextInput(el: Element | null): boolean {
   if (!el) return false;
   const tag = el.tagName;
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return true;
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return true;
   return (el as HTMLElement).isContentEditable === true;
 }
 
@@ -16,42 +16,41 @@ export function useKeyboardShortcut() {
   const copyWidget = useDashboardStore((s) => s.copyWidget);
   const duplicateWidget = useDashboardStore((s) => s.duplicateWidget);
   const pasteWidget = useDashboardStore((s) => s.pasteWidget);
-  const lastInteractedWidgetId = useDashboardStore((s) => s.lastInteractedWidgetId);
+  const lastInteractedWidgetId = useDashboardStore(
+    (s) => s.lastInteractedWidgetId,
+  );
   const widgets = useDashboardStore((s) => s.widgets);
   const setWidgets = useDashboardStore((s) => s.setWidgets);
-  const layouts = useDashboardStore((s) => s.layouts);
   const setLayouts = useDashboardStore((s) => s.setLayouts);
   const currentBreakpoint = useDashboardStore((s) => s.currentBreakpoint);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (
+        e.defaultPrevented ||
+        (document.activeElement as HTMLElement | null)?.closest(
+          '[role="dialog"]',
+        )
+      )
+        return;
+      const key = e.key.toLowerCase();
       // ── Ctrl/Meta shortcuts ──
       if (e.ctrlKey || e.metaKey) {
-        // Ctrl+K: focus search (always works, no edit mode gate)
-        if (e.key === 'k') {
-          e.preventDefault();
-          const input = document.querySelector<HTMLInputElement>(
-            '[data-widget-type="search-box"] input',
-          );
-          input?.focus();
-          return;
-        }
-
         // All other Ctrl+ shortcuts require edit mode and no focused input
         if (!editMode) return;
         if (isTextInput(document.activeElement)) return;
 
-        switch (e.key) {
-          case 'z': {
+        switch (key) {
+          case "z": {
             e.preventDefault();
-            const result = undo();
+            const result = e.shiftKey ? redo() : undo();
             if (result) {
               setWidgets(result.widgets);
               setLayouts(result.layouts);
             }
             break;
           }
-          case 'y': {
+          case "y": {
             e.preventDefault();
             const result = redo();
             if (result) {
@@ -60,24 +59,26 @@ export function useKeyboardShortcut() {
             }
             break;
           }
-          case 'c': {
-            e.preventDefault();
+          case "c": {
             if (lastInteractedWidgetId) {
-              const widget = widgets.find((w) => w.id === lastInteractedWidgetId);
+              e.preventDefault();
+              const widget = widgets.find(
+                (w) => w.id === lastInteractedWidgetId,
+              );
               if (widget) {
                 copyWidget(widget);
               }
             }
             break;
           }
-          case 'v': {
+          case "v": {
             e.preventDefault();
             pasteWidget(currentBreakpoint);
             break;
           }
-          case 'd': {
-            e.preventDefault();
+          case "d": {
             if (lastInteractedWidgetId) {
+              e.preventDefault();
               duplicateWidget(lastInteractedWidgetId, currentBreakpoint);
             }
             break;
@@ -87,13 +88,13 @@ export function useKeyboardShortcut() {
       }
 
       // ── Single key shortcuts ──
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         (document.activeElement as HTMLElement)?.blur();
       }
     };
 
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [
     editMode,
     undo,
@@ -104,7 +105,6 @@ export function useKeyboardShortcut() {
     lastInteractedWidgetId,
     widgets,
     setWidgets,
-    layouts,
     setLayouts,
     currentBreakpoint,
   ]);

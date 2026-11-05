@@ -1,246 +1,171 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import type { WidgetComponentProps, SearchBoxOptions } from '@/types/widget.ts';
-import { useLocalSearch } from './useLocalSearch.ts';
-import SearchSuggestions from './SearchSuggestions.tsx';
-import { Search, Globe } from 'lucide-react';
-import { useTranslation } from '@/i18n';
+import { normalizeUrl } from "@/lib/utils/url";
+import { useState, useRef, useEffect, useId } from "react";
+import { Search } from "lucide-react";
+import type { WidgetComponentProps, SearchBoxOptions } from "@/types/widget";
+import { useTranslation } from "@/i18n";
+import { useLocalSearch } from "./useLocalSearch";
+import SearchSuggestions from "./SearchSuggestions";
 
-const ENGINE_URLS: Record<string, string> = {
-  google: 'https://www.google.com/search?q={query}',
-  baidu: 'https://www.baidu.com/s?wd={query}',
-  bing: 'https://www.bing.com/search?q={query}',
-  duckduckgo: 'https://duckduckgo.com/?q={query}',
+const ENGINES: Record<string, string> = {
+  google: "https://www.google.com/search?q={query}",
+  baidu: "https://www.baidu.com/s?wd={query}",
+  bing: "https://www.bing.com/search?q={query}",
+  duckduckgo: "https://duckduckgo.com/?q={query}",
 };
-
-const ENGINE_NAMES: Record<string, string> = {
-  google: 'G',
-  baidu: '百',
-  bing: 'B',
-  duckduckgo: 'D',
-  custom: 'C',
-};
-
-export default function SearchBoxWidget({ widgetId: _widgetId, options, isEditMode, width: _width, height: _height }: WidgetComponentProps) {
+export default function SearchBoxWidget({
+  options,
+  isEditMode,
+}: WidgetComponentProps) {
   const opts = options as unknown as SearchBoxOptions;
-  const [query, setQuery] = useState('');
-  const [engine, setEngine] = useState<string>(opts.defaultEngine);
-  const [isFocused, setIsFocused] = useState(false);
-  const [showEngineMenu, setShowEngineMenu] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
-  const [suggestionsRect, setSuggestionsRect] = useState<DOMRect | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const engineBtnRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
-
+  const [query, setQuery] = useState("");
+  const [choice, setChoice] = useState({
+    source: opts.defaultEngine,
+    value: opts.defaultEngine as string,
+  });
+  if (choice.source !== opts.defaultEngine)
+    setChoice({ source: opts.defaultEngine, value: opts.defaultEngine });
+  const engine =
+    choice.source === opts.defaultEngine ? choice.value : opts.defaultEngine;
+  const [focused, setFocused] = useState(false);
+  const [selected, setSelected] = useState(-1);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const id = useId();
   const suggestions = useLocalSearch(query);
-  const engines = engine === 'custom' && opts.customEngineUrl
-    ? ['custom', ...Object.keys(ENGINE_URLS)]
-    : Object.keys(ENGINE_URLS);
-
-  useEffect(() => {
-    if (!opts.ctrlKEnabled) return;
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [opts.ctrlKEnabled]);
-
-  useEffect(() => {
-    if (!showEngineMenu) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (engineBtnRef.current?.contains(target)) return;
-      if (target.closest('.search-engine-menu')) return;
-      setShowEngineMenu(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showEngineMenu]);
-
-  const handleSearch = useCallback(() => {
-    if (isEditMode) return;
-    const trimmed = query.trim();
-    if (!trimmed) return;
-    let url: string;
-    if (engine === 'custom' && opts.customEngineUrl) {
-      url = opts.customEngineUrl.replace('{query}', encodeURIComponent(trimmed));
-    } else {
-      const template = ENGINE_URLS[engine] || ENGINE_URLS.google;
-      url = template.replace('{query}', encodeURIComponent(trimmed));
-    }
-    window.location.href = url;
-  }, [isEditMode, query, engine, opts.customEngineUrl]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleSearch();
-      }
-    },
-    [handleSearch],
+  const visible = Boolean(
+    focused && opts.enableLocalSearch && query.trim() && suggestions.length,
   );
-
-  const handleSelect = useCallback((url: string) => {
+  useEffect(() => {
+    if (!focused) return;
+    const update = () =>
+      setRect(input.current?.getBoundingClientRect() ?? null);
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("scroll", update);
+    };
+  }, [focused]);
+  const navigate = (url: string, newTab = false) => {
     if (isEditMode) return;
-    window.location.href = url;
-  }, [isEditMode]);
-
-  const handleEngineSelect = (key: string) => {
-    setEngine(key);
-    setShowEngineMenu(false);
-    inputRef.current?.focus();
-  };
-
-  const handleToggleEngineMenu = () => {
-    if (!showEngineMenu && engineBtnRef.current) {
-      const rect = engineBtnRef.current.getBoundingClientRect();
-
-      const menuWidth = 144; // w-36 = 9rem = 144px
-      const estimatedMenuHeight = engines.length * 36 + 8;
-      let left = rect.left;
-      let top = rect.bottom + 4;
-
-      if (left + menuWidth > window.innerWidth) {
-        left = window.innerWidth - menuWidth - 8;
-      }
-      if (top + estimatedMenuHeight > window.innerHeight) {
-        top = rect.top - estimatedMenuHeight - 4;
-      }
-
-      setMenuPosition({ top, left });
+    try {
+      url = new URL(normalizeUrl(url), window.location.href || document.baseURI)
+        .href;
+    } catch {
+      return;
     }
-    setShowEngineMenu(!showEngineMenu);
+    if (!/^https?:\/\//i.test(url)) return;
+    if (newTab) window.open(url, "_blank", "noopener,noreferrer");
+    else window.location.href = url;
   };
-
-  const borderColor = isFocused ? 'var(--border-focus)' : 'var(--border-default)';
-
+  const search = (newTab = false) => {
+    if (!query.trim()) return;
+    const template =
+      engine === "custom" ? opts.customEngineUrl : ENGINES[engine];
+    if (template)
+      navigate(
+        template.replace("{query}", encodeURIComponent(query.trim())),
+        newTab,
+      );
+  };
   return (
     <div
-      className="flex h-full w-full flex-col items-center justify-center p-3"
+      className="flex h-full items-center justify-center p-3"
       data-widget-type="search-box"
     >
-      <div className="relative w-full max-w-xl">
-        <div className="flex items-stretch">
-          <button
-            ref={engineBtnRef}
-            type="button"
-            className="rounded-l-lg cursor-pointer shrink-0"
-            style={{
-              width: '36px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'var(--bg-input)',
-              border: `1px solid ${borderColor}`,
-              borderRight: 'none',
-              color: 'var(--text-secondary)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-            }}
-            onClick={handleToggleEngineMenu}
-            aria-label={t('widget.searchBox.defaultEngine')}
-          >
-            {ENGINE_NAMES[engine] || <Globe className="h-3.5 w-3.5" />}
-          </button>
-
-          <input
-            ref={inputRef}
-            type="text"
-            className="flex-1 min-w-0 py-2 px-3 text-sm outline-none border-y-0"
-            style={{
-              backgroundColor: 'var(--bg-input)',
-              color: 'var(--text-primary)',
-              borderTop: `1px solid ${borderColor}`,
-              borderBottom: `1px solid ${borderColor}`,
-              borderLeft: 'none',
-              borderRight: 'none',
-            }}
-            placeholder={opts.placeholder || t('widget.searchBox.placeholder')}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onFocus={() => {
-              setIsFocused(true);
-              if (inputRef.current) {
-                setSuggestionsRect(inputRef.current.getBoundingClientRect());
-              }
-            }}
-            onBlur={() => {
-              setTimeout(() => {
-                if (!engineBtnRef.current?.contains(document.activeElement)) {
-                  setIsFocused(false);
-                }
-              }, 200);
-            }}
-          />
-
-          <button
-            type="button"
-            className="rounded-r-lg cursor-pointer shrink-0"
-            style={{
-              width: '36px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'var(--bg-input)',
-              border: `1px solid ${borderColor}`,
-              borderLeft: 'none',
-              color: 'var(--text-muted)',
-            }}
-            onClick={handleSearch}
-            aria-label={t('common.search')}
-          >
-            <Search className="h-5 w-5" />
-          </button>
-        </div>
-
-        {opts.enableLocalSearch && (
+      <div className="flex w-full max-w-xl items-center rounded-lg border bg-[var(--bg-input)] border-[var(--border-default)] focus-within:border-[var(--border-focus)]">
+        <select
+          aria-label={t("widget.searchBox.defaultEngine")}
+          className="min-h-11 max-w-28 rounded-l-lg bg-transparent px-2 text-sm"
+          value={engine}
+          onChange={(e) =>
+            setChoice({ source: opts.defaultEngine, value: e.target.value })
+          }
+        >
+          {Object.keys(ENGINES).map((key) => (
+            <option key={key} value={key}>
+              {t(`widget.searchBox.engines.${key}`)}
+            </option>
+          ))}
+          {opts.customEngineUrl && (
+            <option value="custom">
+              {t("widget.searchBox.engines.custom")}
+            </option>
+          )}
+        </select>
+        <input
+          ref={input}
+          role="combobox"
+          aria-label={t("common.search")}
+          aria-autocomplete="list"
+          aria-expanded={visible}
+          aria-controls={visible ? id : undefined}
+          aria-activedescendant={
+            visible && selected >= 0 ? `${id}-${selected}` : undefined
+          }
+          className="min-h-11 min-w-0 flex-1 bg-transparent px-2 outline-none"
+          placeholder={opts.placeholder || t("widget.searchBox.placeholder")}
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setSelected(-1);
+          }}
+          onFocus={() => {
+            setFocused(true);
+            setRect(input.current?.getBoundingClientRect() ?? null);
+          }}
+          onBlur={() => setFocused(false)}
+          onKeyDown={(e) => {
+            if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+            if (e.key === "Escape") {
+              setFocused(false);
+              setSelected(-1);
+            }
+            if (visible && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+              e.preventDefault();
+              setSelected((i) =>
+                Math.max(
+                  -1,
+                  Math.min(
+                    suggestions.length - 1,
+                    i + (e.key === "ArrowDown" ? 1 : -1),
+                  ),
+                ),
+              );
+            }
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const link =
+                visible && selected >= 0 ? suggestions[selected] : undefined;
+              if (link) navigate(link.url, e.ctrlKey || e.metaKey);
+              else search(e.ctrlKey || e.metaKey);
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="flex min-h-11 min-w-11 items-center justify-center"
+          aria-label={t("common.search")}
+          onClick={() => search()}
+        >
+          <Search className="h-5 w-5" />
+        </button>
+        {visible && (
           <SearchSuggestions
+            id={id}
             suggestions={suggestions}
-            query={query}
-            onSelect={handleSelect}
-            visible={isFocused}
-            anchorRect={suggestionsRect}
+            selectedIndex={selected}
+            onHighlight={setSelected}
+            onSelect={navigate}
+            anchorRect={rect}
           />
         )}
       </div>
-
-      {showEngineMenu && menuPosition &&
-        createPortal(
-          <div
-            className="search-engine-menu fixed z-[9999] w-36 rounded-lg border py-1 shadow-lg"
-            style={{
-              top: menuPosition.top,
-              left: menuPosition.left,
-              backgroundColor: 'var(--bg-widget)',
-              borderColor: 'var(--border-default)',
-            }}
-          >
-            {engines.map((key) => (
-              <button
-                key={key}
-                type="button"
-                className="w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-[var(--bg-widget-hover)]"
-                style={{
-                  color: engine === key ? 'var(--text-accent)' : 'var(--text-primary)',
-                  fontWeight: engine === key ? 600 : 400,
-                }}
-                onClick={() => handleEngineSelect(key)}
-              >
-                {t(`widget.searchBox.engines.${key}`)}
-              </button>
-            ))}
-          </div>,
-          document.body,
-        )}
     </div>
   );
 }

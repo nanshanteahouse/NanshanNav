@@ -7,6 +7,7 @@ import { useAutoEditMode } from "./hooks/useAutoEditMode";
 import { I18nProvider } from "./i18n";
 import type { ColorTheme } from "./types/dashboard";
 import { useInitializeServerSync } from "./hooks/useServerSync";
+import { GlobalSearch } from "./components/common/GlobalSearch";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 
 class RootErrorBoundary extends Component<
@@ -139,6 +140,7 @@ export default function App() {
       <I18nProvider>
         <RootErrorBoundary>
           <AppLayout />
+          <GlobalSearch />
         </RootErrorBoundary>
       </I18nProvider>
     </ThemeProvider>

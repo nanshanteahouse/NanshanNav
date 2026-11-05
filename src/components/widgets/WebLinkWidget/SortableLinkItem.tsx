@@ -1,9 +1,10 @@
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2 } from 'lucide-react';
-import { IconPicker } from '@/components/ui/icon-picker';
-import { useTranslation } from '@/i18n';
-import type { LinkItem, IconSource } from '@/types/widget';
+import { ImageUploader } from "@/components/widgets/ImageWidget/components/ImageUploader";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Trash2 } from "lucide-react";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { useTranslation } from "@/i18n";
+import type { LinkItem, IconSource } from "@/types/widget";
 
 interface SortableLinkItemProps {
   link: LinkItem;
@@ -12,7 +13,12 @@ interface SortableLinkItemProps {
   onRemove: () => void;
 }
 
-export default function SortableLinkItem({ link, index, onUpdate, onRemove }: SortableLinkItemProps) {
+export default function SortableLinkItem({
+  link,
+  index,
+  onUpdate,
+  onRemove,
+}: SortableLinkItemProps) {
   const {
     attributes,
     listeners,
@@ -28,7 +34,7 @@ export default function SortableLinkItem({ link, index, onUpdate, onRemove }: So
       ref={setNodeRef}
       className="rounded-md border p-4"
       style={{
-        borderColor: 'var(--border-default)',
+        borderColor: "var(--border-default)",
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
@@ -44,23 +50,29 @@ export default function SortableLinkItem({ link, index, onUpdate, onRemove }: So
             className="cursor-grab p-0.5 rounded hover:bg-[var(--bg-widget-hover)]"
             {...attributes}
             {...listeners}
-            aria-label={t('widget.webLink.dragToReorder')}
+            aria-label={t("widget.webLink.dragToReorder")}
             tabIndex={0}
           >
-            <GripVertical className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />
+            <GripVertical
+              className="h-4 w-4"
+              style={{ color: "var(--text-muted)" }}
+            />
           </button>
-          <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-            Link #{index + 1}
+          <span
+            className="text-xs font-medium"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {t("review.linkNumber", { number: index + 1 })}
           </span>
         </div>
         <button
           type="button"
           className="flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors"
-          style={{ color: 'var(--status-offline)' }}
+          style={{ color: "var(--status-offline)" }}
           onClick={onRemove}
         >
           <Trash2 className="h-3 w-3" />
-          Remove
+          {t("common.delete")}
         </button>
       </div>
 
@@ -71,11 +83,12 @@ export default function SortableLinkItem({ link, index, onUpdate, onRemove }: So
           type="text"
           className="rounded border px-3 py-2 text-sm"
           style={{
-            backgroundColor: 'var(--bg-input)',
-            borderColor: 'var(--border-default)',
-            color: 'var(--text-primary)',
+            backgroundColor: "var(--bg-input)",
+            borderColor: "var(--border-default)",
+            color: "var(--text-primary)",
           }}
-          placeholder="Name"
+          aria-label={t("widget.webLink.linkName")}
+          placeholder={t("widget.webLink.linkName")}
           value={link.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
         />
@@ -84,9 +97,9 @@ export default function SortableLinkItem({ link, index, onUpdate, onRemove }: So
           type="text"
           className="rounded border px-3 py-2 text-sm"
           style={{
-            backgroundColor: 'var(--bg-input)',
-            borderColor: 'var(--border-default)',
-            color: 'var(--text-primary)',
+            backgroundColor: "var(--bg-input)",
+            borderColor: "var(--border-default)",
+            color: "var(--text-primary)",
           }}
           placeholder="URL (e.g., https://example.com)"
           value={link.url}
@@ -95,77 +108,72 @@ export default function SortableLinkItem({ link, index, onUpdate, onRemove }: So
         {/* Icon Picker */}
         <IconPicker
           value={link.icon}
-          onChange={(iconName) => onUpdate({ icon: iconName, iconValue: iconName })}
+          onChange={(iconName) =>
+            onUpdate({ icon: iconName, iconValue: iconName })
+          }
           variant="popover"
         />
         {/* Icon Source Selector */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Icon Source</span>
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+            {t("review.iconSource")}
+          </span>
           <select
             className="rounded border px-3 py-2 text-sm"
             style={{
-              backgroundColor: 'var(--bg-input)',
-              borderColor: 'var(--border-default)',
-              color: 'var(--text-primary)',
+              backgroundColor: "var(--bg-input)",
+              borderColor: "var(--border-default)",
+              color: "var(--text-primary)",
             }}
-            value={link.iconSource || 'lucide'}
-            onChange={(e) => onUpdate({ iconSource: e.target.value as IconSource })}
+            value={link.iconSource || "lucide"}
+            onChange={(e) =>
+              onUpdate({ iconSource: e.target.value as IconSource })
+            }
           >
             <option value="favicon">Favicon</option>
             <option value="lucide">Lucide Icon</option>
-            <option value="custom">Custom Upload</option>
-            <option value="initial">Initial Letter</option>
+            <option value="custom">{t("review.customUpload")}</option>
+            <option value="initial">{t("review.initialLetter")}</option>
           </select>
         </div>
         {/* Custom upload field (conditional) */}
-        {(link.iconSource || 'lucide') === 'custom' && (
+        {(link.iconSource || "lucide") === "custom" && (
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Custom Icon</span>
-            {link.iconValue ? (
-              <div className="flex items-center gap-2">
-                <img src={link.iconValue} alt="" className="h-6 w-6 object-contain" />
-                <button
-                  type="button"
-                  className="text-xs px-2 py-1 rounded"
-                  style={{ color: 'var(--status-offline)' }}
-                  onClick={() => onUpdate({ iconValue: null })}
-                >
-                  Delete
-                </button>
-              </div>
-            ) : (
-              <input
-                type="file"
-                accept="image/*"
-                className="text-xs"
-                style={{ color: 'var(--text-secondary)' }}
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const formData = new FormData();
-                  formData.append('image', file);
-                  try {
-                    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.url) {
-                      onUpdate({ iconValue: data.url });
-                    }
-                  } catch { /* ignore */ }
-                }}
-              />
-            )}
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+              {t("review.customIcon")}
+            </span>
+            <ImageUploader
+              value={link.iconValue ?? ""}
+              onChange={(url) => onUpdate({ iconValue: url })}
+            />
           </div>
         )}
+        <label className="flex flex-col gap-1 text-sm">
+          {t("review.tags")}
+          <input
+            className="rounded border p-3 bg-[var(--bg-input)] border-[var(--border-default)]"
+            value={(link.tags ?? []).join(", ")}
+            onChange={(e) =>
+              onUpdate({
+                tags: e.target.value
+                  .split(/[,，]/)
+                  .map((tag) => tag.trim())
+                  .filter(Boolean),
+              })
+            }
+          />
+        </label>
         {/* Description */}
         <input
           type="text"
           className="rounded border px-3 py-2 text-sm"
           style={{
-            backgroundColor: 'var(--bg-input)',
-            borderColor: 'var(--border-default)',
-            color: 'var(--text-primary)',
+            backgroundColor: "var(--bg-input)",
+            borderColor: "var(--border-default)",
+            color: "var(--text-primary)",
           }}
-          placeholder="Description"
+          aria-label={t("widget.webLink.description")}
+          placeholder={t("widget.webLink.description")}
           value={link.description}
           onChange={(e) => onUpdate({ description: e.target.value })}
         />
