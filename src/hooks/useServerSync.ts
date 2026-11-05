@@ -8,7 +8,9 @@ function responseRevision(
   response: Response,
   value: { revision?: unknown },
 ): string {
-  const revision = response.headers.get("ETag") ?? value.revision;
+  // Compression proxies may weaken ETag; the JSON revision is the app's lock token.
+  const revision =
+    value.revision === undefined ? response.headers.get("ETag") : value.revision;
   if (typeof revision !== "string" || !/^"[a-zA-Z0-9-]+"$/.test(revision))
     throw new Error(message("saveUnconfirmed"));
   return revision;

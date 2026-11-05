@@ -77,6 +77,47 @@ describe("shared dashboard synchronization", () => {
     );
     expect(useDashboardStore.getState().dirty).toBe(true);
   });
+  it.each(['W/"one"', '"proxy-version"'])(
+    "loads the authoritative JSON revision when the HTTP ETag is %s",
+    async (etag) => {
+      const { useDashboardStore } = await import("@/store");
+      const { initializeServerSync } = await import("@/hooks/useServerSync");
+      fetchMock.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ ...document("published"), revision: '"one"' }),
+          { headers: { ETag: etag } },
+        ),
+      );
+
+      await initializeServerSync();
+
+      expect(useDashboardStore.getState()).toMatchObject({
+        revision: '"one"',
+        saveStatus: "idle",
+        syncError: null,
+      });
+      expect(useDashboardStore.getState().settings.dashboardTitle).toBe(
+        "published",
+      );
+    },
+  );
+  it.each([null, 'W/"one"', "one"])(
+    "rejects an invalid JSON revision %s even with a strong HTTP ETag",
+    async (revision) => {
+      const { useDashboardStore } = await import("@/store");
+      const { initializeServerSync } = await import("@/hooks/useServerSync");
+      fetchMock.mockResolvedValueOnce(
+        new Response(JSON.stringify({ ...document(), revision }), {
+          headers: { ETag: '"one"' },
+        }),
+      );
+
+      await initializeServerSync();
+
+      expect(useDashboardStore.getState().saveStatus).toBe("error");
+      expect(useDashboardStore.getState().revision).toBeNull();
+    },
+  );
   it("does not send management requests while capabilities are loading or read-only", async () => {
     const { useDashboardStore } = await import("@/store");
     const { saveToServer, rollbackToVersion } =
@@ -164,6 +205,51 @@ describe("shared dashboard synchronization", () => {
     expect(useDashboardStore.getState()).toMatchObject({
       dirty: false,
       revision: '"two"',
+      saveStatus: "saved",
+    });
+  });
+  it("saves behind weak HTTP ETags and uses strong JSON revisions for subsequent If-Match", async () => {
+    const { useDashboardStore } = await import("@/store");
+    const { initializeServerSync, saveToServer } =
+      await import("@/hooks/useServerSync");
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ ...document(), revision: '"one"' }), {
+        headers: { ETag: 'W/"one"' },
+      }),
+    );
+    await initializeServerSync();
+    useDashboardStore.setState({
+      readOnly: false,
+      capabilitiesStatus: "ready",
+    });
+    useDashboardStore.getState().updateSettings({ dashboardTitle: "first edit" });
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: true, revision: '"two"' }), {
+        headers: { ETag: 'W/"two"' },
+      }),
+    );
+
+    expect(await saveToServer()).toBe(true);
+    expect(fetchMock.mock.calls[1][1].headers["If-Match"]).toBe('"one"');
+    expect(useDashboardStore.getState()).toMatchObject({
+      revision: '"two"',
+      dirty: false,
+      saveStatus: "saved",
+      syncError: null,
+    });
+
+    useDashboardStore.getState().updateSettings({ dashboardTitle: "next edit" });
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: true, revision: '"three"' }), {
+        headers: { ETag: 'W/"three"' },
+      }),
+    );
+
+    expect(await saveToServer()).toBe(true);
+    expect(fetchMock.mock.calls[2][1].headers["If-Match"]).toBe('"two"');
+    expect(useDashboardStore.getState()).toMatchObject({
+      revision: '"three"',
+      dirty: false,
       saveStatus: "saved",
     });
   });

@@ -37,7 +37,7 @@ Favicon任意公开站点只允许公网解析地址；私网favicon必须与登
 
 | 方法、路径 | 契约 |
 | --- | --- |
-| GET `/api/dashboard` | 返回完整文档及 `revision`、`updatedAt`，HTTP `ETag` 与 revision 相同；未创建时404和 `ETag: "0"`。所有响应禁止缓存 |
+| GET `/api/dashboard` | 返回完整文档及 `revision`、`updatedAt`，源站 HTTP `ETag` 与 revision 相同；反代压缩可能改写 ETag，客户端优先使用 JSON `revision` 作为 `If-Match`；未创建时404和 `ETag: "0"`。所有响应禁止缓存 |
 | PUT `/api/admin/dashboard` | JSON完整文档，必须传 `If-Match: <GET得到的ETag>`；首次创建传 `If-Match: "0"`（引号属于值）。成功返回 `{success:true,revision,updatedAt}` 和新ETag |
 | GET `/api/admin/dashboard/versions` | `{versions:[{revision,updatedAt,title}]}`，按新到旧排列，最多保留最近10个历史有效版本 |
 | POST `/api/admin/dashboard/rollback` | JSON `{revision:"\"历史revision\""}`，`If-Match`必须等于当前ETag；立即恢复指定版本，生成新revision，并先归档当前版本。成功返回恢复后的完整文档和新ETag |
