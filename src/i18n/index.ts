@@ -1,2 +1,3 @@
-export { I18nProvider, useTranslation } from './useTranslation';
-export type { TranslationSchema } from './types';
+export { I18nProvider } from "./useTranslation";
+export { useTranslation } from "./context";
+export type { TranslationSchema } from "./types";

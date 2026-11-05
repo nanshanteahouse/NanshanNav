@@ -1,6 +1,8 @@
-import { useEffect, useRef, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { useId, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
+import { useDialogFocus } from "./useDialogFocus";
+import { useTranslation } from "@/i18n";
 
 interface ModalProps {
   open: boolean;
@@ -11,22 +13,20 @@ interface ModalProps {
   glassBlur?: number;
 }
 
-export function Modal({ open, onClose, title, children, glassEnabled = false, glassBlur = 10 }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  glassEnabled = false,
+  glassBlur = 10,
+}: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (open) {
-      document.addEventListener('keydown', handleKey);
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = '';
-    };
-  }, [open, onClose]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const { t } = useTranslation();
+  useDialogFocus(open, dialogRef, onClose);
 
   if (!open) return null;
 
@@ -51,20 +51,24 @@ export function Modal({ open, onClose, title, children, glassEnabled = false, gl
       onMouseDown={handleOverlayMouseDown}
       onMouseMove={blockPropagation}
       onMouseUp={blockPropagation}
-      role="dialog"
-      aria-modal="true"
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        onMouseDown={(event) => event.stopPropagation()}
         className="relative w-full max-w-2xl max-sm:max-w-[calc(100%-1rem)] rounded-lg p-8 max-sm:p-4 shadow-lg modal-body scrollbar-thin"
         style={(() => {
           const style: React.CSSProperties = {
             backgroundColor: glassEnabled
-              ? 'color-mix(in srgb, var(--bg-widget) 70%, transparent)'
-              : 'var(--bg-widget)',
-            border: '1px solid var(--border-default)',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            marginBottom: 'env(safe-area-inset-bottom, 0px)',
+              ? "color-mix(in srgb, var(--bg-widget) 70%, transparent)"
+              : "var(--bg-widget)",
+            border: "1px solid var(--border-default)",
+            maxHeight: "90vh",
+            overflow: "auto",
+            marginBottom: "env(safe-area-inset-bottom, 0px)",
           };
           if (glassEnabled) {
             style.backdropFilter = `blur(${glassBlur}px)`;
@@ -75,16 +79,17 @@ export function Modal({ open, onClose, title, children, glassEnabled = false, gl
       >
         <div className="mb-4 flex items-center justify-between">
           <h2
+            id={titleId}
             className="max-sm:text-base text-lg font-semibold"
-            style={{ color: 'var(--text-primary)' }}
+            style={{ color: "var(--text-primary)" }}
           >
-            {title ?? ''}
+            {title ?? t("common.settings")}
           </h2>
           <button
             onClick={onClose}
             className="rounded-md p-2 max-sm:p-2.5 min-h-[44px] min-w-[44px] transition-colors hover:opacity-70"
-            style={{ color: 'var(--text-muted)' }}
-            aria-label="Close"
+            style={{ color: "var(--text-muted)" }}
+            aria-label={t("common.close")}
           >
             <X className="h-5 w-5" />
           </button>

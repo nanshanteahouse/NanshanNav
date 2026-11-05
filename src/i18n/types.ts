@@ -1,4 +1,53 @@
+import type { SYNC_TEXT } from "./sync-messages";
 export interface TranslationSchema {
+  sync: typeof SYNC_TEXT.en;
+  review: {
+    managementLoading: string;
+    managementUnavailable: string;
+    readOnly: string;
+    globalShortcut: string;
+    recoveryNotice: string;
+    healthHistory: string;
+    lastSuccess: string;
+    healthUnknown: string;
+    healthHistoryHint: string;
+
+    imageTypes: string;
+    embedBlocked: string;
+    openExternal: string;
+    embedHint: string;
+    noUrl: string;
+    loadFailed: string;
+    pveHost: string;
+    selectHost: string;
+    pveHostHelp: string;
+    tokenConfigured: string;
+    tokenHelp: string;
+    tokenFailed: string;
+    tags: string;
+    starter: string;
+    template: string;
+    homeTemplate: string;
+    minimalTemplate: string;
+    workTemplate: string;
+    templateHelp: string;
+    apply: string;
+    bookmarks: string;
+    bookmarkHelp: string;
+    importPreview: string;
+    importInvalid: string;
+    importBookmarks: string;
+    globalSearch: string;
+    searchEmpty: string;
+    noResults: string;
+    shortcutHint: string;
+    uploadFailed: string;
+    iconSource: string;
+    customUpload: string;
+    initialLetter: string;
+    customIcon: string;
+    linkNumber: string;
+  };
   app: {
     title: string;
     description: string;
@@ -54,6 +103,8 @@ export interface TranslationSchema {
       is24Hour: string;
     };
     titleHeader: {
+      headingLabel: string;
+      alignment: string;
       name: string;
       headingLevel: string;
       textAlign: {
@@ -65,10 +116,19 @@ export interface TranslationSchema {
       iconName: string;
     };
     markdownText: {
+      emptyMessage: string;
+      preview: string;
+      nothingToPreview: string;
+      placeholder: string;
       name: string;
       content: string;
     };
     webLink: {
+      displayFields: string;
+      emptyMessage: string;
+      checking: string;
+      online: string;
+      offline: string;
       name: string;
       links: string;
       linkName: string;
@@ -130,6 +190,23 @@ export interface TranslationSchema {
       };
     };
     image: {
+      emptyMessage: string;
+      loadFailed: string;
+      source: string;
+      url: string;
+      uploadImage: string;
+      scale: string;
+      horizontalAlignment: string;
+      verticalAlignment: string;
+      clickAction: string;
+      altPlaceholder: string;
+      containDescription: string;
+      coverDescription: string;
+      fillDescription: string;
+      originalDescription: string;
+      noneDescription: string;
+      previewDescription: string;
+      linkDescription: string;
       name: string;
       alt: string;
       sourceType: {
@@ -165,6 +242,8 @@ export interface TranslationSchema {
     };
   };
   dashboard: {
+    title: string;
+
     toolbar: string;
     emptyTitle: string;
     emptyDescription: string;
@@ -180,6 +259,13 @@ export interface TranslationSchema {
     cellsSuffix: string;
   };
   widgetShell: {
+    moreOptions: string;
+    moveUp: string;
+    moveDown: string;
+    width: string;
+    height: string;
+    layout: string;
+
     settings: string;
     delete: string;
     editControls: string;
@@ -203,6 +289,12 @@ export interface TranslationSchema {
     remove: string;
   };
   toolbar: {
+    viewOptions: string;
+    moreOptions: string;
+    theme: string;
+    themeLight: string;
+    themeDark: string;
+
     cellSize: string;
     showGridLines: string;
     editMode: string;
@@ -227,6 +319,7 @@ export interface TranslationSchema {
     toggleWidgetPanel: string;
   };
   colorEditor: {
+    contrastWarning: string;
     title: string;
     lightTheme: string;
     darkTheme: string;

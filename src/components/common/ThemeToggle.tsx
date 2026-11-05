@@ -1,38 +1,28 @@
-import { Sun, Moon, Monitor } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useDashboardStore } from '@/store/index';
-import { useTranslation } from '@/i18n';
-import type { ThemeMode } from '@/types/dashboard';
+import { Sun, Moon, Monitor } from "lucide-react";
+import { useDashboardStore } from "@/store/index";
+import { useTranslation } from "@/i18n";
+import type { ThemeMode } from "@/types/dashboard";
 
 export function ThemeToggle({ showLabel = false }: { showLabel?: boolean }) {
   const setThemeMode = useDashboardStore((s) => s.setThemeMode);
   const themeMode = useDashboardStore((s) => s.settings.themeMode);
   const { t } = useTranslation();
-
-  const nextMode: Record<ThemeMode, ThemeMode> = {
-    light: 'dark',
-    dark: 'system',
-    system: 'light',
-  };
-
-  const icon = themeMode === 'dark' ? <Sun className="h-4 w-4" /> :
-    themeMode === 'system' ? <Monitor className="h-4 w-4" /> : <Moon className="h-4 w-4" />;
-
-  const label = themeMode === 'light' ? t('toolbar.switchToDark') :
-    themeMode === 'dark' ? t('toolbar.switchToLight') :
-    t('toolbar.themeSystem');
-
+  const Icon =
+    themeMode === "dark" ? Moon : themeMode === "light" ? Sun : Monitor;
   return (
-    <Button
-      variant="ghost"
-      size={showLabel ? 'sm' : 'icon'}
-      onClick={() => setThemeMode(nextMode[themeMode])}
-      aria-label={label}
-      title={label}
-      className={showLabel ? 'justify-start gap-2' : ''}
-    >
-      {icon}
-      {showLabel && <span>{label}</span>}
-    </Button>
+    <label className="flex min-h-11 items-center gap-2 text-sm text-[var(--text-primary)]">
+      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+      {showLabel && <span>{t("toolbar.theme")}</span>}
+      <select
+        aria-label={t("toolbar.theme")}
+        value={themeMode}
+        onChange={(event) => setThemeMode(event.target.value as ThemeMode)}
+        className="min-h-11 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-2 text-sm"
+      >
+        <option value="light">{t("toolbar.themeLight")}</option>
+        <option value="dark">{t("toolbar.themeDark")}</option>
+        <option value="system">{t("toolbar.themeSystem")}</option>
+      </select>
+    </label>
   );
 }
